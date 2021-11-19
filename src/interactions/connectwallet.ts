@@ -72,7 +72,7 @@ export const checkSigner = async (signerOrProvider: TSignerProvider) => {
       //@ts-ignore
       await signerOrProvider.getAddress();
     } catch (error) {
-      throw new Error("Connect Wallet!");
+      throw "Connect Wallet!";
     }
   }
 };

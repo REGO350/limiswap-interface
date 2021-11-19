@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Dropdown } from "react-bootstrap";
-import { useDispatch, useSelector } from "react-redux";
-import { bindActionCreators } from "redux";
-import * as swapActions from "../../state/swap/actions";
-import { selectSwap } from "../../state";
-import { TokenType } from "../../contracts";
+import { isListedToken, listedTokens } from "../../contracts";
 import styles from "./SwapInterface.module.css";
 import Image from "next/image";
 
@@ -16,38 +12,58 @@ const DefaultText: React.FC = () => {
   );
 };
 
-const TokenText: React.FC<{ token: TokenType }> = ({ token }) => {
-  const imgUrl = `/${token.toLowerCase()}.png`;
+const TokenText: React.FC<{ token: string }> = ({ token }) => {
+  let imgUrl: string | null = null;
+  let text: string = "";
+
+  if (listedTokens.includes(token as any)) {
+    try {
+      require(`../../../public/${token.toLowerCase()}.png`)
+      imgUrl = `/${token.toLowerCase()}.png`;
+    } catch {
+      imgUrl = "/no-img.png"
+    }
+    text = `${token.toUpperCase()}`;
+  } else {
+    text = `${token.slice(0, 5)}..${token.slice(-3)}`;
+  }
   return (
     <div className={styles.dropdownText}>
-      <Image src={imgUrl} alt={token} width={30} height={30} />
-      &nbsp;&nbsp;{token.toUpperCase()}
+      {imgUrl && <Image src={imgUrl} alt="" width={30} height={30} />}
+      {imgUrl && <>&nbsp;&nbsp;</>} {text}
     </div>
   );
 };
 
-const TokenDropdown = (): JSX.Element => {
-  const { tokenType } = useSelector(selectSwap)
-  const { setTokenType } = bindActionCreators(swapActions, useDispatch());
+interface ITokenDropDown {
+  token: string | undefined;
+  setToken: (token: string) => void;
+}
 
-  const tokens: Array<TokenType> = ["Dai", "Link", "Uni"];
-
+export const TokenDropdown: React.FC<ITokenDropDown> = ({
+  token,
+  setToken,
+}) => {
   const [dropdownBtnText, setDropdownText] = useState<JSX.Element>(
     <DefaultText />
   );
 
-  useEffect(() => {
-    if(tokenType !== undefined){
-      setDropdownText(<TokenText token={tokenType} />);
-    }
-  }, [])
-
   const handleSelect = (e: string | null): void => {
-    if(e === "Dai" || e === "Link" || e === "Uni"){
-      setDropdownText(<TokenText token={e} />);
-      setTokenType(e);
+    if (e && isListedToken(e)) {
+      setToken(e);
+    } else {
+      const token = prompt("Enter token address");
+      token && setToken(token);
     }
   };
+
+  useEffect(() => {
+    if (token) {
+      setDropdownText(<TokenText token={token} />);
+    } else {
+      setDropdownText(<DefaultText />);
+    }
+  }, [token]);
 
   return (
     <Dropdown onSelect={handleSelect}>
@@ -60,7 +76,7 @@ const TokenDropdown = (): JSX.Element => {
       </Dropdown.Toggle>
 
       <Dropdown.Menu className={styles.dropdownMenu}>
-        {tokens.map((token) => (
+        {listedTokens.map((token) => (
           <Dropdown.Item
             eventKey={token}
             key={token}
@@ -69,9 +85,14 @@ const TokenDropdown = (): JSX.Element => {
             <TokenText token={token} />
           </Dropdown.Item>
         ))}
+        <Dropdown.Item
+          eventKey="CUSTOM"
+          key="CUSTOM"
+          className={styles.dropdownItem}
+        >
+          <div className={styles.dropdownText}>&nbsp;&nbsp;CUSTOM</div>
+        </Dropdown.Item>
       </Dropdown.Menu>
     </Dropdown>
   );
 };
-
-export default TokenDropdown;

@@ -7,16 +7,19 @@ import styles from "./SwapButton.module.css";
 interface IProps {
   loading: boolean;
   payable: boolean;
-  approved: boolean
+  approved: boolean;
+  hasEntered: boolean;
 }
 
 const SwapButton: React.FC<IProps> = ({
   loading,
   payable,
-  approved
+  approved,
+  hasEntered
 }) => {
   const { address } = useSelector(selectUser);
-  const { swapDirection, value, tokenType } = useSelector(selectSwap);
+  const { tokenIn, tokenOut } = useSelector(selectSwap);
+  const tokenSelected = tokenIn && tokenOut;
 
   return (
     <Button
@@ -25,7 +28,7 @@ const SwapButton: React.FC<IProps> = ({
       disabled={
         loading ||
         (address !== "" && !payable) ||
-        (address !== "" && value === 0)
+        (address !== "" && !hasEntered)
       }
       className={styles.btn}
     >
@@ -37,15 +40,15 @@ const SwapButton: React.FC<IProps> = ({
           aria-hidden="true"
         /> 
       ) : address ? (
-        value === 0 ? (
+        !hasEntered ? (
           "Enter an Amount"
         ) : payable ? (
-          approved || swapDirection === "BuyToken" ? (
+          approved  ? (
             "Swap"
           ) : (
             "Approve token"
           )
-        ) : tokenType ? (
+        ) : tokenSelected ? (
           "Insufficient Balance"
         ) : (
           "Select a Token"

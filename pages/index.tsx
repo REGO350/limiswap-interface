@@ -9,7 +9,7 @@ const Home: React.FC = () => {
   return (
     <>
       <Head>
-        <title>BlockSwap </title>
+        <title>LimiSwap</title>
         <meta name="description" content="World leading token exchange!" />
         <link rel="icon§" href="/favicon.ico" />
       </Head>

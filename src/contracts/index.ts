@@ -1,37 +1,46 @@
-import { ERC20, ERC20__factory, Dex, Dex__factory } from "./abis/types";
-import { TSignerProvider } from "../connectors";
+import { ethers } from "ethers";
+import { ERC20, ERC20__factory, LimiSwap, LimiSwap__factory } from "./abis/types";
+import { getDefaultProvider, TSignerProvider } from "../connectors";
 import { checkSigner } from "../interactions/connectwallet";
+import tokenList from "./tokenList.json";
+import contractAddr from "./contractAddr.json";
+import { IQuoter } from "./abis/types/IQuoter";
+import { IQuoter__factory } from "./abis/types/factories/IQuoter__factory";
 
-export type TokenType = "Dai" | "Link" | "Uni";
+export type ListedToken = keyof typeof tokenList;
+export const listedTokens = Object.keys(tokenList) as ListedToken[]
 
-export const daiAddr = "0x3Dada1665B380182bCb2Fd0EC5350aa642E30CF2";
-export const linkAddr = "0xab3361E094463A9E27368854210fA2E32Fd09a23";
-export const uniAddr = "0x66D44e4481AE436Bb635b741aA9161C4381E315F";
-export const dexAddr = "0xeeE74B877F1d8ab44a631661A7e0E5b081B453e0";
-
-export const getTokenAddr = (tokenType: TokenType): string => {
-  switch (tokenType) {
-    case "Dai":
-      return daiAddr;
-    case "Link":
-      return linkAddr
-    case "Uni":
-      return uniAddr
-  }
+export const isListedToken = (token: any): token is ListedToken => {
+  return listedTokens.includes(token)
 }
 
 export const getTokenInstance = async (
-  signerOrProvider: TSignerProvider,
-  token: TokenType
+  token: string,
+  signerOrProvider?: TSignerProvider,
 ): Promise<ERC20> => {
-  await checkSigner(signerOrProvider);
-  const tokenAddr = getTokenAddr(token);
+  if(signerOrProvider){
+    await checkSigner(signerOrProvider);
+  }else{
+    signerOrProvider = getDefaultProvider();
+  }
+  const tokenAddr = isListedToken(token) ? tokenList[token] : token;
   return ERC20__factory.connect(tokenAddr, signerOrProvider);
 };
 
-export const getDexInstance = async (
-  signerOrProvider: TSignerProvider
-): Promise<Dex> => {
-  await checkSigner(signerOrProvider);
-  return Dex__factory.connect(dexAddr, signerOrProvider);
+export const limiswapAddr = contractAddr.LimiSwap;
+export const getLimiSwapInstance = async (
+  signerOrProvider?: TSignerProvider
+): Promise<LimiSwap> => {
+  if(signerOrProvider){
+    await checkSigner(signerOrProvider);
+  }else{
+    signerOrProvider = getDefaultProvider();
+  }
+  return LimiSwap__factory.connect(limiswapAddr, signerOrProvider);
 };
+
+export const getQuoterInstance = async (): Promise<IQuoter> => {
+  const provider = getDefaultProvider();
+  const voidSigner = new ethers.VoidSigner(ethers.constants.AddressZero, provider);
+  return IQuoter__factory.connect(contractAddr.Quoter, voidSigner);
+}
