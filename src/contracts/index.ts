@@ -2,8 +2,8 @@ import { ethers } from "ethers";
 import { ERC20, ERC20__factory, LimiSwap, LimiSwap__factory } from "./abis/types";
 import { getDefaultProvider, TSignerProvider } from "../connectors";
 import { checkSigner } from "../interactions/connectwallet";
-import tokenList from "./tokenList.json";
-import contractAddr from "./contractAddr.json";
+import tokenList from "./addresses/tokenList.json";
+import contractAddr from "./addresses/contractAddr.json";
 import { IQuoter } from "./abis/types/IQuoter";
 import { IQuoter__factory } from "./abis/types/factories/IQuoter__factory";
 
