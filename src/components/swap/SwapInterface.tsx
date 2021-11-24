@@ -8,7 +8,7 @@ import * as userActions from "../../state/user/actions";
 import * as popupActions from "../../state/popup/actions";
 import styles from "./SwapInterface.module.css";
 import { TokenDropdown } from "./TokenDropdown";
-import { createOrder, getPrice } from "../../interactions/limiswap";
+import { createOrder } from "../../interactions/limiswap";
 import {
   approveToken,
   getBalanceAllownace,
@@ -18,9 +18,8 @@ import {
 import { useDidUpdateAsyncEffect } from "../../hooks";
 import { connectWallet } from "../../interactions/connectwallet";
 import SwapButton from "../SwapButton";
-import { fromWei, toWei } from "../../utils";
 import Slider from "@mui/material/Slider";
-import useAsyncEffect from "use-async-effect";
+import { getPair, IPair } from "../../interactions/api";
 
 const SwapInterface = (): JSX.Element => {
   const { address, signer } = useSelector(selectUser);
@@ -44,8 +43,10 @@ const SwapInterface = (): JSX.Element => {
   const [input, setInput] = useState<number>(0);
   const [rateValue, setRateValue] = useState<string | undefined>(undefined);
   const [rate, setRate] = useState<number>(0);
+  const [price, setPrice] = useState<number>(0);
   const [slippage, setSlippage] = useState<number>(1);
   const [output, setOutput] = useState<number>(0);
+  const [pair, setPair] = useState<IPair | undefined>(undefined);
 
   const [payable, setPayable] = useState<boolean>(false);
   const [approved, setApproved] = useState<boolean>(false);
@@ -95,7 +96,7 @@ const SwapInterface = (): JSX.Element => {
   ): Promise<void> => {
     e.preventDefault();
 
-    if (address && tokenIn && tokenOut && approved) {
+    if (address && tokenIn && tokenOut && approved && pair) {
       try {
         setLoading(true);
         const data = await createOrder(
@@ -103,7 +104,7 @@ const SwapInterface = (): JSX.Element => {
           input,
           tokenIn,
           tokenOut,
-          3000,
+          pair.poolFee,
           slippage,
           signer
         );
@@ -165,48 +166,79 @@ const SwapInterface = (): JSX.Element => {
     setLoading(true);
     for (let token of tokens) {
       if (address) {
-        const data = await getBalanceAllownace(address, token);
-        updateTokenState({ [token]: data });
+        try {
+          const data = await getBalanceAllownace(address, token);
+          updateTokenState({ [token]: data });
+        } catch(err) {
+          console.error(err);
+        }
       }
     }
     setLoading(false);
   };
 
+  //Account change
   useDidUpdateAsyncEffect(async () => {
-    resetAllTokenState();
+    await resetAllTokenState();
     if (address && tokenIn) {
       await reloadTokens(tokenIn);
     }
   }, [address]);
 
-  useAsyncEffect(async () => {
+  //tokenIn change
+  useDidUpdateAsyncEffect(async () => {
     if (tokenIn && !tokensState.hasOwnProperty(tokenIn)) {
       await reloadTokens(tokenIn);
     }
   }, [tokenIn]);
 
+  //Pair change
   useDidUpdateAsyncEffect(async () => {
-    if (tokenIn && tokenOut) {
-      setLoading(true);
-      if (input && typeof rate === "number") {
+    if(tokenIn && tokenOut){
+      if(tokenIn !== tokenOut){
+        setLoading(true);
+        try {
+          const pair = await getPair(tokenIn, tokenOut);
+          setPrice(pair.tokenOutPrice);
+          setPair(pair);
+        } catch (err) {
+          setPrice(0);
+          setPair(undefined);
+          console.error(err);
+        }
+        setLoading(false);
+      }else{
+        setPrice(1);
+        setPair(undefined);
+      }
+    }
+  }, [tokenIn, tokenOut]);
+
+  //Input change
+  useDidUpdateAsyncEffect(async () => {
+    if(tokenIn && tokenOut){
+      if (input && rate) {
         const amount = rate * input;
         setOutput(amount);
-      } else if (input) {
-        const price = await getPrice(tokenIn, tokenOut);
-        const amount = fromWei(price) * input;
+      } else if (input && pair) {
+        const amount = price * input;
         setOutput(amount);
-        setRate(fromWei(price));
       } else if (input === 0) {
         setOutput(0);
       }
+    }
+  }, [input, rate, price]);
 
-      if (address && input) {
+  useDidUpdateAsyncEffect(async () => {
+    if (address && input && tokenIn && tokenOut) {
+      setLoading(true);
+      try {
         setPayable(
           await hasEnoughBalance(
             address,
             tokenIn,
             input,
-            tokensState[tokenIn].balance
+            tokensState[tokenIn]?.balance
           )
         );
         setApproved(
@@ -214,13 +246,16 @@ const SwapInterface = (): JSX.Element => {
             address,
             tokenIn,
             input,
-            tokensState[tokenIn].allowance
+            tokensState[tokenIn]?.allowance
           )
         );
+      } catch (err){
+        setPayable(false);
+        setApproved(false);
       }
       setLoading(false);
     }
-  }, [input, rate, tokensState]);
+  }, [input])
 
   return (
     <main className={styles.main}>
@@ -251,7 +286,7 @@ const SwapInterface = (): JSX.Element => {
             inputMode="decimal"
             type="number"
             min="0"
-            placeholder="0.00"
+            placeholder={rateValue === undefined && price > 0 ? price.toFixed(5) : "0.00"}
             step="any"
             autoComplete="off"
             autoCorrect="off"
@@ -259,9 +294,10 @@ const SwapInterface = (): JSX.Element => {
             onWheel={(e: any) => e.target.blur()}
             value={rateValue || ""}
             required={address ? true : false}
+            style={{"color": pair && rate < price ? "red" : "white"}}
           />
           <div>
-            <h5>Slippage:</h5>
+            <h6>Slippage: {slippage.toFixed(2)} %</h6>
             <Slider
               id={styles.slider}
               aria-label="Default"
@@ -292,6 +328,7 @@ const SwapInterface = (): JSX.Element => {
           payable={payable}
           approved={approved}
           hasEntered={input ? true : false}
+          isValidPair={pair ? true : false}
         />
       </Form>
     </main>

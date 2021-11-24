@@ -2,25 +2,26 @@ import { JsonRpcSigner } from "@ethersproject/providers";
 import { MaxUint256 } from "@ethersproject/constants";
 import { BigNumber } from "ethers";
 import { getDefaultProvider } from "../connectors";
-import {
-  getTokenInstance,
-  limiswapAddr,
-} from "../contracts";
+import { getTokenInstance, limiswapAddr } from "../contracts";
 import { toWei } from "../utils";
 
 export const getBalanceAllownace = async (
   userAddr: string,
   selectedToken: string
 ): Promise<{ balance: BigNumber; allowance: BigNumber }> => {
-  if (selectedToken === "ETH") {
-    const provider = getDefaultProvider();
-    const balance = await provider.getBalance(userAddr);
-    return { balance, allowance: MaxUint256 };
-  } else {
-    const token = await getTokenInstance(selectedToken);
-    const balance = await token.balanceOf(userAddr);
-    const allowance = await token.allowance(userAddr, limiswapAddr);
-    return { balance, allowance };
+  try {
+    if (selectedToken === "ETH") {
+      const provider = getDefaultProvider();
+      const balance = await provider.getBalance(userAddr);
+      return { balance, allowance: MaxUint256 };
+    } else {
+      const token = await getTokenInstance(selectedToken);
+      const balance = await token.balanceOf(userAddr);
+      const allowance = await token.allowance(userAddr, limiswapAddr);
+      return { balance, allowance };
+    }
+  } catch (err) {
+    throw err;
   }
 };
 
@@ -45,15 +46,15 @@ export const hasApprovedToken = async (
 ): Promise<boolean> => {
   const valueWei = toWei(amount);
   if (!approvedAmount) {
-    approvedAmount = (await getBalanceAllownace(userAddr, selectedToken)).allowance;
+    approvedAmount = (await getBalanceAllownace(userAddr, selectedToken))
+      .allowance;
   }
   return approvedAmount?.gte(valueWei) || false;
 };
 
-
 export const approveToken = async (
   selectedToken: string,
-  signer: JsonRpcSigner,
+  signer: JsonRpcSigner
 ): Promise<string> => {
   try {
     const token = await getTokenInstance(selectedToken, signer);

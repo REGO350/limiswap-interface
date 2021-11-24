@@ -14,6 +14,11 @@ export const isListedToken = (token: any): token is ListedToken => {
   return listedTokens.includes(token)
 }
 
+export const getTokenAddr = (token: string): string => {
+  const tokenAddr = isListedToken(token) ? tokenList[token] : token;
+  return tokenAddr;
+}
+
 export const getTokenInstance = async (
   token: string,
   signerOrProvider?: TSignerProvider,

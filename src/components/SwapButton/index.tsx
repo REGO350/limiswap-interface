@@ -9,13 +9,15 @@ interface IProps {
   payable: boolean;
   approved: boolean;
   hasEntered: boolean;
+  isValidPair: boolean;
 }
 
 const SwapButton: React.FC<IProps> = ({
   loading,
   payable,
   approved,
-  hasEntered
+  hasEntered,
+  isValidPair,
 }) => {
   const { address } = useSelector(selectUser);
   const { tokenIn, tokenOut } = useSelector(selectSwap);
@@ -27,6 +29,7 @@ const SwapButton: React.FC<IProps> = ({
       type="submit"
       disabled={
         loading ||
+        (address !== "" && !isValidPair) ||
         (address !== "" && !payable) ||
         (address !== "" && !hasEntered)
       }
@@ -38,12 +41,14 @@ const SwapButton: React.FC<IProps> = ({
           animation="border"
           role="status"
           aria-hidden="true"
-        /> 
+        />
       ) : address ? (
-        !hasEntered ? (
+        !isValidPair ? (
+          "Invalid Pair"
+        ) : !hasEntered ? (
           "Enter an Amount"
         ) : payable ? (
-          approved  ? (
+          approved ? (
             "Swap"
           ) : (
             "Approve token"

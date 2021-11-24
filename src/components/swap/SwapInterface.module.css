@@ -42,6 +42,8 @@
   padding: 0;
   min-width: 125px !important;
   background-color: #191B2F;
+  margin-left: 125px;
+  margin-top: -70px;
 }
 
 .dropdownItem {
