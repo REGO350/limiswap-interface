@@ -5,22 +5,22 @@ import { useSelector } from "react-redux";
 import useAsyncEffect from "use-async-effect";
 import { selectUser } from "../../state";
 import Order from "./Order";
+import styles from "./Stats.module.css";
 
 export interface IRawOrder {
-  orderId: string,
-  targetPrice: string,
-  amountIn: string,
-  tokenIn: string,
-  tokenOut: string,
-  user: string,
-  poolFee: string,
-  slippage: string,
-  status: string,
-  createdAt: string,
-  updatedAt: string,
-  objectId: string
+  orderId: string;
+  targetPrice: string;
+  amountIn: string;
+  tokenIn: string;
+  tokenOut: string;
+  user: string;
+  poolFee: string;
+  slippage: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  objectId: string;
 }
-
 
 const StatsInterface = () => {
   const { address } = useSelector(selectUser);
@@ -32,45 +32,43 @@ const StatsInterface = () => {
     { autoFetch: false }
   );
 
-  const [rawOrders, setRawOrders] = useState<IRawOrder[] | undefined | null>(undefined);
+  const [rawOrders, setRawOrders] = useState<IRawOrder[] | undefined | null>(
+    undefined
+  );
 
   useAsyncEffect(async () => {
-    if(address){
+    if (address) {
       await fetch();
     }
   }, [address]);
 
   useEffect(() => {
-    if(data && !error){
+    if (data && !error) {
       //@ts-ignore
-      if(data.length > 0){
+      if (data.length > 0) {
         setRawOrders(data as IRawOrder[]);
-      }else{
+      } else {
         setRawOrders(null);
       }
-    }else{
+    } else {
       setRawOrders(undefined);
     }
   }, [data, error]);
 
-  return (
-    address ? (
-      isLoading ? (
-        <Spinner animation="border" />
-      ) : (
-        rawOrders ? (
-          rawOrders.map((rawOrder) => 
-            <Order rawOrder={rawOrder} key={rawOrder.objectId}/>
-          )
-        ) : (
-          <div>No tx</div>
-        )
-      )
+  return address ? (
+    isLoading ? (
+      <Spinner animation="border" />
+    ) : rawOrders ? (
+      <div className={styles.orderBox}>
+        {rawOrders.map((rawOrder) => (
+          <Order rawOrder={rawOrder} key={rawOrder.objectId} />
+        ))}
+      </div>
     ) : (
-      <Alert variant="danger">
-        Connect wallet to view your orders!
-      </Alert>
+      <div>No tx</div>
     )
+  ) : (
+    <Alert variant="danger">Connect wallet to view your orders!</Alert>
   );
 };
 

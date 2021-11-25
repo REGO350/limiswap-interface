@@ -3,6 +3,7 @@ import SwapInterface from "../src/components/swap/SwapInterface";
 import styles from "../styles/Home.module.css";
 import AlertModal from "../src/components/popups/AlertModal";
 import SuccessModal from "../src/components/popups/SuccessModal";
+import Footer from "../src/components/Footer";
 
 const Home: React.FC = () => {
   return (
@@ -17,6 +18,7 @@ const Home: React.FC = () => {
         <AlertModal/>
         <SuccessModal/>
         <SwapInterface />
+        <Footer/>
       </main>
     </>
   );

@@ -42,6 +42,7 @@
 .inputGroup {
   width: 97%;
   margin: 0px auto;
+  position: relative;
 }
 
 .inputGroupText {
@@ -53,6 +54,17 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+#maxButton {
+  position: absolute;
+  left: 290px;
+  top: 29px;
+  z-index: 3;
+}
+
+#maxButton:hover {
+  cursor: pointer;
 }
 
 .midBox {

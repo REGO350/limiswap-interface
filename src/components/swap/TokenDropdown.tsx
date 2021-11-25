@@ -6,11 +6,13 @@ import {
   FormControl,
   InputGroup,
   Modal,
+  Spinner,
 } from "react-bootstrap";
 import { isListedToken, listedTokens } from "../../contracts";
 import styles from "./TokenDropdown.module.css";
 import Image from "next/image";
 import { isValidAddress } from "../../utils";
+import { getDecimals, getSymbol } from "../../interactions/token";
 
 const DefaultText: React.FC = () => {
   return (
@@ -32,9 +34,12 @@ const TokenText: React.FC<{ token: string }> = ({ token }) => {
       imgUrl = "/no-img.png";
     }
     text = `${token.toUpperCase()}`;
-  } else {
+  } else if(isValidAddress(token)){
     text = `${token.slice(0, 5)}..${token.slice(-3)}`;
+  } else {
+    text = `${token.toUpperCase()}`;
   }
+
   return (
     <div className={styles.dropdownText}>
       {imgUrl && <Image src={imgUrl} alt="" width={30} height={30} />}
@@ -47,24 +52,39 @@ interface ICustomTokenModal {
   showSetting: boolean;
   setShowSettings: (value: boolean) => void;
   setCustomToken: (value: string) => void;
+  setTokenInfo: (tokenInfo: { symbol: string, decimals: number }) => void;
 }
 
 const CustomTokenModal: React.FC<ICustomTokenModal> = ({
   showSetting,
   setShowSettings,
   setCustomToken,
+  setTokenInfo
 }) => {
   const [currentInput, setCurrentInput] = useState<string | undefined>(
     undefined
   );
   const [isInvalid, setIsInvalid] = useState<boolean>(false);
   const innerRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const onClickSave = () => {
+  const onClickSave = async () => {
     if (currentInput && isValidAddress(currentInput)) {
-      setCustomToken(currentInput);
-      setIsInvalid(false);
-      setShowSettings(false);
+      try {
+        setLoading(true);
+
+        const symbol = await getSymbol(currentInput);
+        const decimals = await getDecimals(currentInput);
+
+        setCustomToken(currentInput);
+        setTokenInfo({ symbol, decimals});
+        setIsInvalid(false);
+        setShowSettings(false);
+      } catch {
+        setIsInvalid(true);
+      } finally {
+        setLoading(false);
+      }
     } else {
       setIsInvalid(true);
     }
@@ -75,9 +95,16 @@ const CustomTokenModal: React.FC<ICustomTokenModal> = ({
     setIsInvalid(false);
   };
 
+  const onInputChange = (
+    e: React.ChangeEvent<typeof FormControl & HTMLInputElement>
+  ) => {
+    setCurrentInput(e.target.value);
+    setIsInvalid(false);
+  };
+
   useEffect(() => {
-    if(innerRef && innerRef.current){
-      innerRef.current.focus()
+    if (innerRef && innerRef.current) {
+      innerRef.current.focus();
     }
   });
 
@@ -87,37 +114,58 @@ const CustomTokenModal: React.FC<ICustomTokenModal> = ({
       onHide={onClickClose}
       contentClassName={styles.contentModal}
       animation={false}
+      backdropClassName={styles.contentBackdrop}
     >
-      <Modal.Header closeButton>
+      <Modal.Header className={styles.contentHeader}>
         <Modal.Title className={styles.contentTitle}>
-          Enter custom token address
+          Enter custom token address:
         </Modal.Title>
+        {isInvalid && (
+          <h5>
+            <Badge bg="danger">Invalid address!</Badge>
+          </h5>
+        )}
       </Modal.Header>
-      <Modal.Body>
-        <InputGroup className="mb-3" size="lg">
-          <InputGroup.Text id="basic-addon1">@</InputGroup.Text>
+      <Modal.Body className={styles.contentBody}>
+        <InputGroup size="lg" className={styles.contentInputGroup}>
           <FormControl
-            placeholder="Token address"
+            placeholder="0x ..."
             aria-describedby="basic-addon1"
-            onChange={(e) => setCurrentInput(e.target.value)}
+            onChange={onInputChange}
             ref={innerRef}
+            className={styles.contentFormControl}
           />
         </InputGroup>
         <div className={styles.subContent}>
-          <h6>Note: Multi route is currently not supported</h6>
-          {isInvalid && (
-            <h5>
-              <Badge bg="danger">Invalid address!</Badge>
-            </h5>
-          )}
+          <h6>Note: Multi-route swap is currently not supported</h6>
         </div>
       </Modal.Body>
       <Modal.Footer className={styles.contentFooter}>
-        <Button variant="secondary" onClick={onClickClose}>
+        <Button
+          variant="secondary"
+          onClick={onClickClose}
+          className={styles.modalButton}
+          id={styles.closeButton}
+        >
           Close
         </Button>
-        <Button variant="success" onClick={onClickSave}>
-          Confirm
+        <Button
+          variant="success"
+          onClick={onClickSave}
+          className={styles.modalButton}
+          id={styles.confirmButton}
+        >
+          {loading ? (
+            <Spinner
+              as="span"
+              animation="border"
+              role="status"
+              aria-hidden="true"
+              size="sm"
+            />
+          ) : (
+            "Confirm"
+          )}
         </Button>
       </Modal.Footer>
     </Modal>
@@ -133,14 +181,16 @@ export const TokenDropdown: React.FC<ITokenDropDown> = ({
   token,
   setToken,
 }) => {
-  const [dropdownBtnText, setDropdownText] = useState<JSX.Element>(
+  const [dropdownBtnText, setDropdownBtnText] = useState<JSX.Element>(
     <DefaultText />
   );
   const [showSetting, setShowSetting] = useState<boolean>(false);
+  const [customTokenSymbol, setCustomTokenSymbol] = useState<string | undefined>(undefined);
 
   const handleSelect = (e: string | null): void => {
     if (e && isListedToken(e)) {
       setToken(e);
+      setCustomTokenSymbol(undefined);
     } else {
       setShowSetting(true);
     }
@@ -148,11 +198,15 @@ export const TokenDropdown: React.FC<ITokenDropDown> = ({
 
   useEffect(() => {
     if (token) {
-      setDropdownText(<TokenText token={token} />);
+      if(customTokenSymbol){
+        setDropdownBtnText(<TokenText token={customTokenSymbol} />);
+      }else{
+        setDropdownBtnText(<TokenText token={token} />);
+      }
     } else {
-      setDropdownText(<DefaultText />);
+      setDropdownBtnText(<DefaultText />);
     }
-  }, [token]);
+  }, [token, customTokenSymbol]);
 
   return (
     <>
@@ -188,6 +242,7 @@ export const TokenDropdown: React.FC<ITokenDropDown> = ({
         showSetting={showSetting}
         setShowSettings={setShowSetting}
         setCustomToken={setToken}
+        setTokenInfo={({ symbol }) => setCustomTokenSymbol(symbol)}
       />
     </>
   );

@@ -1,6 +1,5 @@
 import React from 'react'
 import EventListener from '../EventListener'
-import Footer from '../Footer'
 import MainNavigation from './MainNavigation'
 
 const Layout: React.FC = ({children}) => {
@@ -8,7 +7,6 @@ const Layout: React.FC = ({children}) => {
     <>
       <MainNavigation/>
       <main>{children}</main>
-      <Footer/>
       <EventListener/>
     </>
   )

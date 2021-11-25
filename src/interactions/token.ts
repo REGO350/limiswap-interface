@@ -5,6 +5,22 @@ import { getDefaultProvider } from "../connectors";
 import { getTokenInstance, limiswapAddr } from "../contracts";
 import { toWei } from "../utils";
 
+export const getDecimals = async (
+  selectedToken: string
+) => {
+  const token = await getTokenInstance(selectedToken);
+  const decimals = await token.decimals();
+  return decimals;
+}
+
+export const getSymbol = async (
+  selectedToken: string
+) => {
+  const token = await getTokenInstance(selectedToken);
+  const symbol = await token.symbol();
+  return symbol;
+}
+
 export const getBalanceAllownace = async (
   userAddr: string,
   selectedToken: string

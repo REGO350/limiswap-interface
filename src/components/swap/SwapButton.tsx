@@ -43,18 +43,20 @@ const SwapButton: React.FC<IProps> = ({
           aria-hidden="true"
         />
       ) : address ? (
-        !isValidPair ? (
-          "Invalid Pair"
-        ) : !hasEntered ? (
-          "Enter an Amount"
-        ) : payable ? (
-          approved ? (
-            "Swap"
+        tokenSelected ? (
+          !isValidPair ? (
+            "Invalid Pair"
+          ) : !hasEntered ? (
+            "Enter an Amount"
+          ) : payable ? (
+            approved ? (
+              "Swap"
+            ) : (
+              "Approve token"
+            )
           ) : (
-            "Approve token"
-          )
-        ) : tokenSelected ? (
-          "Insufficient Balance"
+            "Insufficient Balance"
+          ) 
         ) : (
           "Select a Token"
         )

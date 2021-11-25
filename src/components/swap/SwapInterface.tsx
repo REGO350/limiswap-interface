@@ -1,9 +1,5 @@
-import React, { useState  } from "react";
-import {
-  Form,
-  FormControl,
-  InputGroup,
-} from "react-bootstrap";
+import React, { useState } from "react";
+import { Badge, Form, FormControl, InputGroup } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { bindActionCreators } from "redux";
 import { selectSwap, selectUser } from "../../state";
@@ -90,6 +86,10 @@ const SwapInterface = (): JSX.Element => {
     setTokenOut(tokenIn);
     setTokenIn(tmp);
   };
+
+  const onClickMax = (): void => {
+
+  }
 
   const onClickSubmit = async (
     e: React.FormEvent<HTMLFormElement>
@@ -290,6 +290,9 @@ const SwapInterface = (): JSX.Element => {
             token={tokenIn}
             setToken={(token) => setTokenIn(token)}
           />
+          <Badge pill bg="secondary" id={styles.maxButton} onClick={onClickMax}>
+            Max
+          </Badge>
         </InputGroup>
         <div className={styles.midBox}>
           <Form.Control

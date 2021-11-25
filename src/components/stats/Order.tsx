@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, Card } from "react-bootstrap";
 import { IRawOrder } from "./StatsInterface";
+import styles from "./Stats.module.css";
 
 interface IProps {
   key: string;
@@ -14,6 +15,7 @@ const Order: React.FC<IProps> = ({ rawOrder }) => {
   return (
     <Card
       bg="secondary"
+      className={styles.card}
     >
       <Card.Header>Featured</Card.Header>
       <Card.Body>

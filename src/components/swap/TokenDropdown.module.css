@@ -32,30 +32,68 @@
   background-color: #2d212e;
 }
 
+.contentBackdrop {
+  opacity: 0.75 !important;
+}
+
 .contentModal {
-  /* background-color: #2C2F36; */
+  top: 100px;
+  background-color: #191B1F;
+  border-radius: 38px;
+  border: 1px solid #2c2f36;
 }
 
-.contentTitle {
-  color: #2C2F36;
-  /* color: black; */
-  /* color: #B0B2B8; */
+.contentModal .contentHeader {
+  border-bottom: none;
+  margin-bottom: -20px;
 }
 
-.subContent {
-  width: 100%;
-  overflow: auto;
+.contentHeader .contentTitle {
+  color: #FFFFFF;
+  font-size: 20px;
+}
+
+.contentModal .contentBody {
   margin-bottom: -10px;
 }
 
-.subContent h6 {
-  float: left;
-  /* color: black */
-  /* color: #B0B2B8; */
-  color: #2C2F36;
+.contentBody .contentFormControl {
+  background-color: #212429 !important;
+  color: #fff !important;
+  border-width: 2px;
+  border-color: #2c2f36;
+  border-radius: 18px;
+  height: 60px;
+  font-size: 18px;
 }
 
-.subContent h5 {
+.contentBody .subContent {
+  margin-top: 10px;
+  width: 100%;
+  overflow: auto;
+}
+
+.contentBody .subContent h6 {
+  float: left;
+  color: #fff;
+  filter: brightness(80%);
+}
+
+.contentHeader h5 {
   float: right;
-  margin-bottom: -20px;
+  margin-bottom: 0px;
+  margin-right: 5px;
+}
+
+.contentModal .contentFooter{
+  border-top: 3px solid #2c2f36;
+}
+
+.contentFooter .modalButton {
+  border-radius: 10px;
+  margin: 0px 5px;
+}
+
+.modalButton#confirmButton {
+  width: 90px;
 }
