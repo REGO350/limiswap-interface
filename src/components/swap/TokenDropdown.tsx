@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Dropdown } from "react-bootstrap";
 import { isListedToken, listedTokens } from "../../contracts";
-import styles from "./SwapInterface.module.css";
+import styles from "./TokenDropdown.module.css";
 import Image from "next/image";
 
 const DefaultText: React.FC = () => {

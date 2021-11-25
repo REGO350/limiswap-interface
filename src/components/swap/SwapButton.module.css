@@ -1,14 +1,15 @@
 .btn {
   position: absolute;
-  width: 90%;
-  height: 50px;
+  width: 96%;
+  height: 57px;
   background-color: #172A42;
   color: #6DA8FF;
   margin: 0px auto;
-  bottom: -75px;
-  left: 50%;
-  margin-left: -45%;
-  border-radius: 15px;
+  bottom: -65px;
+  margin-left: 10px;
+  border-radius: 19px;
+  font-family: 'Inter', sans-serif;
+  font-size: large;
 }
 
 .btn:disabled {

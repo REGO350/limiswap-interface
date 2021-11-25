@@ -1,0 +1,21 @@
+.backdropModal {
+  opacity: 0 !important;
+}
+
+.contentModal {
+  width: 270px;
+  border: 2px solid #40444F;
+  background-color: #2C2F36;
+  color: #B0B2B8;
+  top: 300px;
+  right: -100px;
+  padding: 5px;
+}
+
+.contentModal #slider {
+  width: 95%;
+}
+
+.contentModal h5 {
+  margin-top: 3px;
+}

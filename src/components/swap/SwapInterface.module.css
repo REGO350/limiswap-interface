@@ -1,27 +1,52 @@
 .main {
   margin: 0 auto;
-  margin-top: 150px;
-  border-radius: 50px;
-  height: 375px;
-  width: 500px;
+  margin-top: 110px;
+  border-radius: 38px;
+  height: 352px;
+  width: 480px;
   background-color: #191b1f;
   position: relative;
 }
 
 .box {
   position: absolute;
-  top: 30px;
+  top: 17px;
   width: 100%;
 }
 
-.inputGroup{
-  width: 90%;
+.box .boxHeader {
+  height: 30px;
+  width: 100%;
+  overflow: auto;
+  margin-bottom: 5px;
+}
+
+.boxHeader #boxTitle {
+  float: left;
+  margin-left: 23px;
+  font-family: "Inter", sans-serif;
+  font-size: 18px;
+}
+
+.boxHeader #gear {
+  float: right;
+  font-size: 22px;
+  margin-right: 23px;
+}
+
+.boxHeader #gear:hover {
+  cursor: pointer;
+  filter: brightness(75%);
+}
+
+.inputGroup {
+  width: 97%;
   margin: 0px auto;
 }
 
 .inputGroupText {
-  background-color: #191B1F;
-  border-color: #2C2F36;
+  background-color: #191b1f;
+  border-color: #2c2f36;
   color: #fff;
   width: 27%;
   font-size: large;
@@ -30,86 +55,55 @@
   align-items: center;
 }
 
-.dropdownBtn {
-  width: 27%;
-  border-color: #2C2F36;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.midBox {
+  width: 100%;
+  margin: 5px;
+  overflow: auto;
 }
 
-.dropdownMenu {
-  padding: 0;
-  min-width: 125px !important;
-  background-color: #191B2F;
-  margin-left: 125px;
-  margin-top: -70px;
+.midBox #arrow {
+  font-size: 40px;
+  float: right;
+  margin-right: 55px;
+  margin-top: 4px;
 }
 
-.dropdownItem {
-  margin: 5px 0;
-  padding-left: 20px;
-}
-
-.dropdownText{
-  color: #fff;
-  font-size: large;
-  display: flex;
-  align-items: center;
-}
-
-.dropdownItem:hover{
-  background-color: #2D212E;
+.midBox #arrow:hover {
+  cursor: pointer;
 }
 
 .formControl {
   background-color: #212429;
-  border-color: #2C2F36;
+  border-color: #2c2f36;
   border-width: 2px;
-  height: 70px;
-  border-radius: 15px;
-  font-size: x-large;
+  height: 75px;
+  border-radius: 18px;
+  font-size: 26px;
 }
 
 #topFormControl {
-  background-color: #212429; 
-  color: #fff
+  background-color: #212429;
+  color: #fff;
 }
 
 #midFormControl {
-  background-color: #212429; 
+  background-color: #212429;
   color: #fff;
-  width: 225px;
+  caret-color: #fff;
+  width: 300px;
   height: 60px;
+  float: left;
+  margin-left: 44px;
+  border-radius: 16px;
+  border-bottom-right-radius: 0px;
+  border-top-right-radius: 0px;
 }
 
 #bottomFormControl {
-  background-color: #212429; 
-  color: #fff
+  background-color: #212429;
+  color: #fff;
 }
 
-#bottomFormControl:hover{
+#bottomFormControl:hover {
   cursor: not-allowed;
-}
-
-.arrowBox {
-  width: 100%;
-  display: flex;
-  justify-content: center; 
-  margin: 15px 0px;
-}
-
-.arrowBox h2{
-  margin-top: 15px;
-  font-size: 40px;
-}
-
-.arrowBox h2:hover{
-  cursor: pointer;
-}
-
-#slider {
-  margin-top: 5px;
-  margin-bottom: -10px;
-  width: 100px;
 }

@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { Form, FormControl, InputGroup } from "react-bootstrap";
+import React, { useState  } from "react";
+import {
+  Form,
+  FormControl,
+  InputGroup,
+} from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { bindActionCreators } from "redux";
 import { selectSwap, selectUser } from "../../state";
@@ -7,6 +11,7 @@ import * as swapActions from "../../state/swap/actions";
 import * as userActions from "../../state/user/actions";
 import * as popupActions from "../../state/popup/actions";
 import styles from "./SwapInterface.module.css";
+import { BsGear } from "react-icons/bs";
 import { TokenDropdown } from "./TokenDropdown";
 import { createOrder } from "../../interactions/limiswap";
 import {
@@ -17,9 +22,9 @@ import {
 } from "../../interactions/token";
 import { useDidUpdateAsyncEffect } from "../../hooks";
 import { connectWallet } from "../../interactions/connectwallet";
-import SwapButton from "../SwapButton";
-import Slider from "@mui/material/Slider";
+import SwapButton from "./SwapButton";
 import { getPair, IPair } from "../../interactions/api";
+import SlippageModal from "./SlippageModal";
 
 const SwapInterface = (): JSX.Element => {
   const { address, signer } = useSelector(selectUser);
@@ -51,6 +56,8 @@ const SwapInterface = (): JSX.Element => {
   const [payable, setPayable] = useState<boolean>(false);
   const [approved, setApproved] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+
+  const [showSetting, setShowSettings] = useState<boolean>(false);
 
   const onInputChange = (
     e: React.ChangeEvent<typeof FormControl & HTMLInputElement>
@@ -169,7 +176,7 @@ const SwapInterface = (): JSX.Element => {
         try {
           const data = await getBalanceAllownace(address, token);
           updateTokenState({ [token]: data });
-        } catch(err) {
+        } catch (err) {
           console.error(err);
         }
       }
@@ -194,8 +201,8 @@ const SwapInterface = (): JSX.Element => {
 
   //Pair change
   useDidUpdateAsyncEffect(async () => {
-    if(tokenIn && tokenOut){
-      if(tokenIn !== tokenOut){
+    if (tokenIn && tokenOut) {
+      if (tokenIn !== tokenOut) {
         setLoading(true);
         try {
           const pair = await getPair(tokenIn, tokenOut);
@@ -207,7 +214,7 @@ const SwapInterface = (): JSX.Element => {
           console.error(err);
         }
         setLoading(false);
-      }else{
+      } else {
         setPrice(1);
         setPair(undefined);
       }
@@ -216,7 +223,7 @@ const SwapInterface = (): JSX.Element => {
 
   //Input change
   useDidUpdateAsyncEffect(async () => {
-    if(tokenIn && tokenOut){
+    if (tokenIn && tokenOut) {
       if (input && rate) {
         const amount = rate * input;
         setOutput(amount);
@@ -249,17 +256,27 @@ const SwapInterface = (): JSX.Element => {
             tokensState[tokenIn]?.allowance
           )
         );
-      } catch (err){
+      } catch (err) {
         setPayable(false);
         setApproved(false);
       }
       setLoading(false);
     }
-  }, [input])
+  }, [input]);
 
   return (
     <main className={styles.main}>
       <Form className={styles.box} onSubmit={onClickSubmit}>
+        <div className={styles.boxHeader}>
+          <h6 id={styles.boxTitle}>Limit Order Swap</h6>
+          <BsGear id={styles.gear} onClick={() => setShowSettings(true)} />
+          <SlippageModal
+            setSlippage={setSlippage}
+            setShowSettings={setShowSettings}
+            showSetting={showSetting}
+            slippage={slippage}
+          />
+        </div>
         <InputGroup className={styles.inputGroup} id={styles.top}>
           <Form.Control
             className={styles.formControl}
@@ -276,17 +293,21 @@ const SwapInterface = (): JSX.Element => {
             value={inputValue || ""}
             required={address ? true : false}
           />
-          <TokenDropdown token={tokenIn} setToken={(token) => setTokenIn(token)} />
+          <TokenDropdown
+            token={tokenIn}
+            setToken={(token) => setTokenIn(token)}
+          />
         </InputGroup>
-        <div className={styles.arrowBox}>
-          <h2 onClick={onClickSwitchDirection}>↓</h2>
+        <div className={styles.midBox}>
           <Form.Control
             className={styles.formControl}
             id={styles.midFormControl}
             inputMode="decimal"
             type="number"
             min="0"
-            placeholder={rateValue === undefined && price > 0 ? price.toFixed(5) : "0.00"}
+            placeholder={
+              rateValue === undefined && price > 0 ? price.toFixed(5) : "0.00"
+            }
             step="any"
             autoComplete="off"
             autoCorrect="off"
@@ -294,22 +315,11 @@ const SwapInterface = (): JSX.Element => {
             onWheel={(e: any) => e.target.blur()}
             value={rateValue || ""}
             required={address ? true : false}
-            style={{"color": pair && rate < price ? "red" : "white"}}
+            style={{ color: pair && rate < price ? "red" : "white" }}
           />
-          <div>
-            <h6>Slippage: {slippage.toFixed(2)} %</h6>
-            <Slider
-              id={styles.slider}
-              aria-label="Default"
-              defaultValue={1}
-              valueLabelDisplay="auto"
-              step={0.01}
-              min={0}
-              max={2.18672}
-              valueLabelFormat={(value) => `${value} %`}
-              scale={onSlippageChange}
-            />
-          </div>
+          <h2 onClick={onClickSwitchDirection} id={styles.arrow}>
+            ↓
+          </h2>
         </div>
 
         <InputGroup className={styles.inputGroup} id={styles.bottom}>
@@ -321,7 +331,10 @@ const SwapInterface = (): JSX.Element => {
             value={output === 0 ? "" : output.toFixed(7)}
             disabled
           />
-          <TokenDropdown token={tokenOut} setToken={(token) => setTokenOut(token)} />
+          <TokenDropdown
+            token={tokenOut}
+            setToken={(token) => setTokenOut(token)}
+          />
         </InputGroup>
         <SwapButton
           loading={loading}
