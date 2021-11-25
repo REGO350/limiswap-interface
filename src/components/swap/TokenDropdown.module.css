@@ -31,3 +31,31 @@
 .dropdownItem:hover {
   background-color: #2d212e;
 }
+
+.contentModal {
+  /* background-color: #2C2F36; */
+}
+
+.contentTitle {
+  color: #2C2F36;
+  /* color: black; */
+  /* color: #B0B2B8; */
+}
+
+.subContent {
+  width: 100%;
+  overflow: auto;
+  margin-bottom: -10px;
+}
+
+.subContent h6 {
+  float: left;
+  /* color: black */
+  /* color: #B0B2B8; */
+  color: #2C2F36;
+}
+
+.subContent h5 {
+  float: right;
+  margin-bottom: -20px;
+}

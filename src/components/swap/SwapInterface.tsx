@@ -85,13 +85,6 @@ const SwapInterface = (): JSX.Element => {
     }
   };
 
-  const onSlippageChange = (value: number): number => {
-    const slippage = value ** 5;
-    const slippageValue = Number(slippage.toFixed(2));
-    setSlippage(slippage);
-    return slippageValue;
-  };
-
   const onClickSwitchDirection = (): void => {
     const tmp = tokenOut;
     setTokenOut(tokenIn);
