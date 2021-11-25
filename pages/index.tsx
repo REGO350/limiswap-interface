@@ -1,6 +1,5 @@
 import Head from "next/head";
 import SwapInterface from "../src/components/swap/SwapInterface";
-import Footer from "../src/components/Footer";
 import styles from "../styles/Home.module.css";
 import AlertModal from "../src/components/popups/AlertModal";
 import SuccessModal from "../src/components/popups/SuccessModal";
@@ -18,7 +17,6 @@ const Home: React.FC = () => {
         <AlertModal/>
         <SuccessModal/>
         <SwapInterface />
-        <Footer/>
       </main>
     </>
   );

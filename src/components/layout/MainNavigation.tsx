@@ -13,7 +13,7 @@ const MainNavigation: React.FC = () => {
             <Link href="/">Swap</Link>
           </li>
           <li>
-            <Link href="/stats">Stats</Link>
+            <Link href="/stats">Orders</Link>
           </li>
         </ul>
       </nav>
