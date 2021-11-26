@@ -9,6 +9,7 @@ import {
 import { selectUser } from "../../state";
 import * as userActions from "../../state/user/actions";
 import * as popupActions from "../../state/popup/actions";
+import styles from "./ConnectButton.module.css"
 
 const ConnectButton = () => {
   const { address, host } = useSelector(selectUser);
@@ -55,7 +56,7 @@ const ConnectButton = () => {
         onMouseLeave={() => setHover(false)}
         disabled={loading}
         size="lg"
-        style={{ width: "160px" }}
+        className={styles.connectButton}
       >
         {loading ? (
           <Spinner

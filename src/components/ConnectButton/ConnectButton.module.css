@@ -1,0 +1,10 @@
+.connectButton {
+  width: 160px;
+  border-radius: 30px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.connectButton:hover {
+  filter: brightness(80%);
+}
