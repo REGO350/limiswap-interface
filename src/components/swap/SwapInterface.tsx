@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Badge, Form, FormControl, InputGroup } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { bindActionCreators } from "redux";
@@ -22,6 +22,7 @@ import SwapButton from "./SwapButton";
 import { getPair, IPair } from "../../interactions/api";
 import SlippageModal from "./SlippageModal";
 import { ITokenInfo } from "../../state/swap/reducers";
+import { fromWei, toBN, toWei } from "../../utils";
 
 const SwapInterface = (): JSX.Element => {
   const { address, signer } = useSelector(selectUser);
@@ -55,6 +56,7 @@ const SwapInterface = (): JSX.Element => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const [showSetting, setShowSettings] = useState<boolean>(false);
+  const [showMaxBtn, setShowMaxBtn] = useState<boolean>(false);
 
   const onInputChange = (
     e: React.ChangeEvent<typeof FormControl & HTMLInputElement>
@@ -89,8 +91,14 @@ const SwapInterface = (): JSX.Element => {
   };
 
   const onClickMax = (): void => {
-
-  }
+    if(tokenIn){
+      const balanceBN = tokensState[tokenIn.address].balance || toBN(0);
+      const balance = fromWei(balanceBN, tokenIn.decimals);
+      const balanceText = balance > 1 ? balance.toFixed(5) : balance.toFixed(10)
+      setInput(balance);
+      setInputValue(balanceText);
+    }
+  };
 
   const onClickSubmit = async (
     e: React.FormEvent<HTMLFormElement>
@@ -193,6 +201,18 @@ const SwapInterface = (): JSX.Element => {
     }
   }, [tokenIn]);
 
+  useEffect(() => {
+    if(tokenIn && tokensState.hasOwnProperty(tokenIn.address)){
+      if(tokensState[tokenIn.address].balance?.gt(0)){
+        setShowMaxBtn(true);
+      }else{
+        setShowMaxBtn(false);
+      }
+    }else{
+      setShowMaxBtn(false);
+    }
+  }, [tokenIn, tokensState])
+
   //Pair change
   useDidUpdateAsyncEffect(async () => {
     if (tokenIn && tokenOut) {
@@ -291,9 +311,16 @@ const SwapInterface = (): JSX.Element => {
             token={tokenIn}
             setToken={(token) => setTokenIn(token)}
           />
-          <Badge pill bg="secondary" id={styles.maxButton} onClick={onClickMax}>
-            Max
-          </Badge>
+          {showMaxBtn && (
+            <Badge
+              pill
+              bg="secondary"
+              id={styles.maxButton}
+              onClick={onClickMax}
+            >
+              Max
+            </Badge>
+          )}
         </InputGroup>
         <div className={styles.midBox}>
           <Form.Control
