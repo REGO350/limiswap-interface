@@ -65,6 +65,7 @@
 
 #maxButton:hover {
   cursor: pointer;
+  filter: brightness(90%);
 }
 
 .midBox {

@@ -21,6 +21,7 @@ import { connectWallet } from "../../interactions/connectwallet";
 import SwapButton from "./SwapButton";
 import { getPair, IPair } from "../../interactions/api";
 import SlippageModal from "./SlippageModal";
+import { ITokenInfo } from "../../state/swap/reducers";
 
 const SwapInterface = (): JSX.Element => {
   const { address, signer } = useSelector(selectUser);
@@ -162,13 +163,13 @@ const SwapInterface = (): JSX.Element => {
     }
   };
 
-  const reloadTokens = async (...tokens: Array<string>): Promise<void> => {
+  const reloadTokens = async (...tokens: Array<ITokenInfo>): Promise<void> => {
     setLoading(true);
     for (let token of tokens) {
       if (address) {
         try {
           const data = await getBalanceAllownace(address, token);
-          updateTokenState({ [token]: data });
+          updateTokenState({ [token.address]: data });
         } catch (err) {
           console.error(err);
         }
@@ -187,7 +188,7 @@ const SwapInterface = (): JSX.Element => {
 
   //tokenIn change
   useDidUpdateAsyncEffect(async () => {
-    if (tokenIn && !tokensState.hasOwnProperty(tokenIn)) {
+    if (tokenIn && !tokensState.hasOwnProperty(tokenIn.address)) {
       await reloadTokens(tokenIn);
     }
   }, [tokenIn]);
@@ -238,7 +239,7 @@ const SwapInterface = (): JSX.Element => {
             address,
             tokenIn,
             input,
-            tokensState[tokenIn]?.balance
+            tokensState[tokenIn.address]?.balance
           )
         );
         setApproved(
@@ -246,7 +247,7 @@ const SwapInterface = (): JSX.Element => {
             address,
             tokenIn,
             input,
-            tokensState[tokenIn]?.allowance
+            tokensState[tokenIn.address]?.allowance
           )
         );
       } catch (err) {

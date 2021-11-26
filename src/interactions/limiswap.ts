@@ -2,12 +2,13 @@ import { BigNumber } from "ethers";
 import { JsonRpcSigner } from "@ethersproject/providers";
 import { getLimiSwapInstance, getQuoterInstance, getTokenInstance } from "../contracts";
 import { toBN, toWei } from "../utils";
+import { ITokenInfo } from "../state/swap/reducers";
 
 export const createOrder = async (
   price: number,
   amountIn: number,
-  tokenIn: string,
-  tokenOut: string,
+  tokenIn: ITokenInfo,
+  tokenOut: ITokenInfo,
   fee: number,
   slippage: number,
   signer: JsonRpcSigner,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as swapActions from "../../state/swap/actions";
 import * as userActions from "../../state/user/actions";
 import * as popupActions from "../../state/popup/actions";
@@ -26,6 +26,8 @@ const Order: React.FC<IProps> = ({ rawOrder }) => {
 
   const [loading, setLoading] = useState(false);
   const [isHovering, setHover] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState("PENDING");
+
   const {
     tokenInSymbol,
     tokenOutSymbol,
@@ -37,6 +39,36 @@ const Order: React.FC<IProps> = ({ rawOrder }) => {
     orderId,
     status,
   } = rawOrder;
+
+  const onClickCancel = async () => {
+    if (loading) {
+      return;
+    }
+    try {
+      setLoading(true);
+      const txHash = await cancelOrder(orderId, signer);
+      setTxHash(txHash);
+      setSuccessModal({
+        active: true,
+        txHash,
+        message: "Approve Successful",
+      });
+      setCurrentStatus("CANCELLED");
+    } catch (error: any) {
+      setAlertModal({
+        active: true,
+        title: "Transaction Error!",
+        message: error.message,
+      });
+    } finally {
+      setLoading(false);
+      setHover(false);
+    }
+  };
+
+  useEffect(() => {
+    setCurrentStatus(status);
+  }, [status])
 
   const priceNum = fromWei(
     BigNumber.from(targetPrice),
@@ -67,36 +99,11 @@ const Order: React.FC<IProps> = ({ rawOrder }) => {
 
   const slippageText = (Number(slippage) / 100).toString();
 
-  const onClickCancel = async () => {
-    if (loading) {
-      return;
-    }
-    try {
-      setLoading(true);
-      const txHash = await cancelOrder(orderId, signer);
-      setTxHash(txHash);
-      setSuccessModal({
-        active: true,
-        txHash,
-        message: "Approve Successful",
-      });
-    } catch (error: any) {
-      setAlertModal({
-        active: true,
-        title: "Transaction Error!",
-        message: error.message,
-      });
-    } finally {
-      setLoading(false);
-      setHover(false);
-    }
-  };
-
   return (
     <Card className={styles.card}>
       <Card.Body className={styles.cardBody}>
         <div className={styles.statusBox}>
-          {status === "PENDING" ? (
+          {currentStatus === "PENDING" ? (
             <Badge
               pill
               bg={isHovering ? "danger" : "secondary"}
@@ -107,11 +114,11 @@ const Order: React.FC<IProps> = ({ rawOrder }) => {
             >
               {loading ? (
                 <Spinner
-                  size='sm'
-                  as='span'
-                  animation='border'
-                  role='status'
-                  aria-hidden='true'
+                  size="sm"
+                  as="span"
+                  animation="border"
+                  role="status"
+                  aria-hidden="true"
                 />
               ) : isHovering ? (
                 "Cancel"
@@ -119,12 +126,12 @@ const Order: React.FC<IProps> = ({ rawOrder }) => {
                 "Pending"
               )}
             </Badge>
-          ) : status === "FILLED" ? (
-            <Badge pill bg='success' className={styles.statusText}>
+          ) : currentStatus === "FILLED" ? (
+            <Badge pill bg="success" className={styles.statusText}>
               Filled
             </Badge>
           ) : (
-            <Badge pill bg='danger' className={styles.statusText}>
+            <Badge pill bg="danger" className={styles.statusText}>
               Cancelled
             </Badge>
           )}
@@ -137,7 +144,7 @@ const Order: React.FC<IProps> = ({ rawOrder }) => {
             @ {priceText} {tokenInSymbol} / {tokenOutSymbol}
           </div>
         </Card.Title>
-        <Card.Text className={styles.cardText} as='div'>
+        <Card.Text className={styles.cardText} as="div">
           <div className={styles.tokenIn}>
             <span>Amount in: </span>
             <span>

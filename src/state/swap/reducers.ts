@@ -1,5 +1,6 @@
 import { createReducer } from "@reduxjs/toolkit";
 import { BigNumber } from "ethers";
+import { getTokenAddr } from "../../contracts";
 import { updateTokenState, setTokenIn, setTokenOut, resetAllTokenState } from "./actions";
 
 export interface ITokenState {
@@ -7,14 +8,24 @@ export interface ITokenState {
   allowance?: BigNumber;
 }
 
+export interface ITokenInfo {
+  symbol: string;
+  address: string;
+  decimals: number;
+}
+
 interface IState {
-  tokenIn: string | undefined;
-  tokenOut: string | undefined;
+  tokenIn?: ITokenInfo
+  tokenOut?: ITokenInfo;
   tokensState: Record<string, ITokenState>;
 }
 
 const initialState: IState = {
-  tokenIn: "ETH",
+  tokenIn: {
+    symbol: "ETH",
+    address: getTokenAddr("ETH"),
+    decimals: 18
+  },
   tokenOut: undefined,
   tokensState: {},
 };

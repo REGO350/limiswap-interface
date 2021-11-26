@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getTokenAddr } from "../contracts";
+import { ITokenInfo } from "../state/swap/reducers";
 
 export interface IPair {
   poolFee: number;
@@ -10,14 +11,14 @@ export interface IPair {
 }
 
 export const getPair = async (
-  tokenIn: string,
-  tokenOut: string
+  tokenIn: ITokenInfo,
+  tokenOut: ITokenInfo
 ): Promise<IPair> => {
   const graphAPI = process.env.NEXT_PUBLIC_GRAPH_API || "";
-  tokenIn = getTokenAddr(tokenIn).toLowerCase();
-  tokenOut = getTokenAddr(tokenOut).toLowerCase();
-  const token0 = tokenIn < tokenOut ? tokenIn : tokenOut;
-  const token1 = tokenIn > tokenOut ? tokenIn : tokenOut;
+  const tokenInAddr = tokenIn.address.toLowerCase();
+  const tokenOutAddr = tokenOut.address.toLowerCase();
+  const token0 = tokenInAddr < tokenOutAddr ? tokenInAddr : tokenOutAddr;
+  const token1 = tokenInAddr > tokenOutAddr ? tokenInAddr : tokenOutAddr;
 
   try {
     const result = await axios.post(graphAPI, {
@@ -50,7 +51,7 @@ export const getPair = async (
     });
 
     const data = result.data.data.pools[0];
-    if(token0 === tokenIn){
+    if(token0 === tokenInAddr){
       return {
         poolFee: Number(data.feeTier),
         tokenInPrice: Number(data.token0Price),

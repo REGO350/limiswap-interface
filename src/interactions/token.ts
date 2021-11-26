@@ -4,6 +4,7 @@ import { BigNumber } from "ethers";
 import { getDefaultProvider } from "../connectors";
 import { getTokenInstance, limiswapAddr } from "../contracts";
 import { toWei } from "../utils";
+import { ITokenInfo } from "../state/swap/reducers";
 
 export const getDecimals = async (
   selectedToken: string
@@ -23,15 +24,15 @@ export const getSymbol = async (
 
 export const getBalanceAllownace = async (
   userAddr: string,
-  selectedToken: string
+  selectedToken: ITokenInfo
 ): Promise<{ balance: BigNumber; allowance: BigNumber }> => {
   try {
-    if (selectedToken === "ETH") {
+    if (selectedToken.symbol === "ETH") {
       const provider = getDefaultProvider();
       const balance = await provider.getBalance(userAddr);
       return { balance, allowance: MaxUint256 };
     } else {
-      const token = await getTokenInstance(selectedToken);
+      const token = await getTokenInstance(selectedToken.address);
       const balance = await token.balanceOf(userAddr);
       const allowance = await token.allowance(userAddr, limiswapAddr);
       return { balance, allowance };
@@ -43,7 +44,7 @@ export const getBalanceAllownace = async (
 
 export const hasEnoughBalance = async (
   userAddr: string,
-  selectedToken: string,
+  selectedToken: ITokenInfo,
   amount: number,
   userBalance?: BigNumber
 ): Promise<boolean> => {
@@ -56,7 +57,7 @@ export const hasEnoughBalance = async (
 
 export const hasApprovedToken = async (
   userAddr: string,
-  selectedToken: string,
+  selectedToken: ITokenInfo,
   amount: number,
   approvedAmount?: BigNumber
 ): Promise<boolean> => {
@@ -69,11 +70,11 @@ export const hasApprovedToken = async (
 };
 
 export const approveToken = async (
-  selectedToken: string,
+  selectedToken: ITokenInfo,
   signer: JsonRpcSigner
 ): Promise<string> => {
   try {
-    const token = await getTokenInstance(selectedToken, signer);
+    const token = await getTokenInstance(selectedToken.address, signer);
     const approveTokenTx = await token.approve(limiswapAddr, MaxUint256);
     const { transactionHash: txHash } = await approveTokenTx.wait();
     return txHash;
