@@ -154,6 +154,7 @@ const CustomTokenModal: React.FC<ICustomTokenModal> = ({
           onClick={onClickSave}
           className={styles.modalButton}
           id={styles.confirmButton}
+          disabled={loading}
         >
           {loading ? (
             <Spinner
