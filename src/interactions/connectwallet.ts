@@ -21,39 +21,48 @@ const addNetwork = async (id: number): Promise<void> => {
           method: "wallet_addEthereumChain",
           params: [data],
         });
-      } catch (error: any) {
-        alert("Failed to add network. Please switch to Rinkeby manually");
+      } catch {
+        throw new Error("Failed to add network. Please switch to Rinkeby manually");
       }
+    }else{
+      throw error;
     }
   }
 };
 
 export const connectWallet = async () => {
-  //@ts-ignore
-  let host = await web3Modal.connect();
-  let provider = getProvider(host);
-  let userNetId = (await provider.getNetwork()).chainId;
-
-  if (host.isMetaMask && userNetId !== networkId) {
-    await addNetwork(networkId);
-    //@ts-ignore
-    host = await web3Modal.connect();
-    provider = getProvider(host);
-    userNetId = (await provider.getNetwork()).chainId;
-    if( userNetId !== networkId ){
-      return initialState;
-    }
+  if(!web3Modal){
+    throw "Error";
   }
 
-  const signer = provider.getSigner();
-  const address = await signer.getAddress();
+  try {
+    let host = await web3Modal.connect();
+    let provider = getProvider(host);
+    let userNetId = (await provider.getNetwork()).chainId;
+  
+    if (host.isMetaMask && userNetId !== networkId && web3Modal) {
+      await addNetwork(networkId);
+      host = await web3Modal.connect();
+      provider = getProvider(host);
+      userNetId = (await provider.getNetwork()).chainId;
+      if( userNetId !== networkId ){
+        return initialState;
+      }
+    }
+  
+    const signer = provider.getSigner();
+    const address = await signer.getAddress();
 
-  return {
-    host,
-    provider,
-    signer,
-    address,
-  };
+    return {
+      host,
+      provider,
+      signer,
+      address,
+    };
+
+  } catch (err) {
+    throw err;
+  }
 };
 
 export const disconnectWallet = async (
@@ -71,7 +80,7 @@ export const checkSigner = async (signerOrProvider: TSignerProvider) => {
     try {
       //@ts-ignore
       await signerOrProvider.getAddress();
-    } catch (error) {
+    } catch {
       throw new Error("Connect Wallet!");
     }
   }

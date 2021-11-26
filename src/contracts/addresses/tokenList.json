@@ -1,0 +1,14 @@
+{
+  "ETH": {
+    "address": "0xd0A1E359811322d97991E03f863a0C30C2cF029C",
+    "decimals": 18
+  },
+  "LINK": {
+    "address": "0xa36085f69e2889c224210f603d836748e7dc0088",
+    "decimals": 18
+  },
+  "USDC": {
+    "address": "0x2365369617A8348F75CDA61d7b1e872484c1b6E5",
+    "decimals": 6
+  }
+}

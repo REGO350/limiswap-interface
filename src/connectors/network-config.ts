@@ -3,7 +3,6 @@ import WalletConnectProvider from "@walletconnect/web3-provider";
 
 export const networkId = 42;
 
-//This RPC URL came from Metamask (nothing sensitive)
 export const defaultRPCURL =
   "https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161";
 

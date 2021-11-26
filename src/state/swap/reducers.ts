@@ -1,79 +1,41 @@
 import { createReducer } from "@reduxjs/toolkit";
 import { BigNumber } from "ethers";
-import { TokenType } from "../../contracts";
-import {
-  setAmount,
-  setSwapDirection,
-  setTokenType,
-  setValue,
-  updateTokenState,
-} from "./actions";
-
-export type TSwapDirection = "BuyToken" | "SellToken";
+import { updateTokenState, setTokenIn, setTokenOut, resetAllTokenState } from "./actions";
 
 export interface ITokenState {
   balance?: BigNumber;
   allowance?: BigNumber;
-  price?: BigNumber;
 }
 
 interface IState {
-  swapDirection: TSwapDirection;
-  tokenType: TokenType | undefined;
-  value: number;
-  amount: number;
-  tokensState: Record<TokenType, ITokenState>;
+  tokenIn: string | undefined;
+  tokenOut: string | undefined;
+  tokensState: Record<string, ITokenState>;
 }
 
-const initialTokenState: ITokenState = {
-  balance: undefined,
-  allowance: undefined,
-  price: undefined,
-};
-
 const initialState: IState = {
-  swapDirection: "BuyToken",
-  tokenType: undefined,
-  value: 0,
-  amount: 0,
-  tokensState: {
-    Dai: initialTokenState,
-    Link: initialTokenState,
-    Uni: initialTokenState,
-  },
+  tokenIn: "ETH",
+  tokenOut: undefined,
+  tokensState: {},
 };
 
 export default createReducer<IState>(initialState, (builder) => {
   builder
-    .addCase(setSwapDirection, (state, { payload: swapDirection }) => {
+    .addCase(setTokenIn, (state, { payload }) => {
       return {
         ...state,
-        swapDirection,
+        tokenIn: payload,
       };
     })
-    .addCase(setTokenType, (state, { payload: tokenType }) => {
+    .addCase(setTokenOut, (state, { payload }) => {
       return {
         ...state,
-        tokenType,
-      };
-    })
-    .addCase(setValue, (state, { payload: value }) => {
-      return {
-        ...state,
-        value,
-      };
-    })
-    .addCase(setAmount, (state, { payload: amount }) => {
-      return {
-        ...state,
-        amount,
+        tokenOut: payload,
       };
     })
     .addCase(updateTokenState, (state, { payload }) => {
-      let tokensState: Record<TokenType, ITokenState> = state.tokensState;
-
+      let tokensState: Record<string, ITokenState> = state.tokensState;
       Object.entries(payload).forEach(([key, value]) => {
-        //@ts-ignore
         const tokenState: ITokenState = tokensState[key];
         const mergedState: ITokenState = {
           ...tokenState,
@@ -91,5 +53,11 @@ export default createReducer<IState>(initialState, (builder) => {
         ...state,
         tokensState,
       };
+    })
+    .addCase(resetAllTokenState, (state) => {
+      return {
+        ...state,
+        tokensState: {}
+      }
     });
 });

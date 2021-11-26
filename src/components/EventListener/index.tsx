@@ -23,10 +23,10 @@ const EventListener = (): JSX.Element => {
       setTxHash(txHash);
     };
 
-    const handleAccountChange = (accounts: string[]) => {
+    const handleAccountChange = async (accounts: string[]) => {
       if(accounts){
         const signer = provider.getSigner();
-        const address = accounts[0];
+        const address = await signer.getAddress();
         updateUserInfo({signer, address});
       }else{
         resetAccount();

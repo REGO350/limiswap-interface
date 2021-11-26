@@ -1,0 +1,102 @@
+.orderBox {
+  width: 900px;
+  background-color: #191B1F;
+  border-radius: 30px;
+  padding-top: 15px;
+  margin-bottom: -50px;
+  /* padding-bottom: 15px; */
+}
+
+.orderBox .orderBoxHeader {
+  width: 100%;
+  overflow: auto;
+  font-size: 16px;
+  font-family: "Inter", sans-serif;
+  margin-bottom: 15px;
+}
+
+.orderBoxHeader #positionsText {
+  float: left;
+  margin-left: 25px;
+}
+
+.orderBoxHeader #statusText {
+  float: right;
+  margin-right: 40px;
+}
+
+.card {
+  width: 98%;
+  margin: 0 auto;
+  border: none;
+  background-color: transparent !important;
+  margin-bottom: 15px;
+}
+
+.card .cardBody {
+  background-color:#212429;
+  border-radius: 30px;
+  /* position: relative; */
+  overflow: auto;
+  padding-bottom: 15px;
+}
+
+.cardBody .cardTitleBox {
+  display: flex;
+  justify-content: left;
+  align-items: baseline;
+}
+
+.cardTitleBox .pairNames {
+  font-size: 25px;
+  font-family:Verdana, Geneva, Tahoma, sans-serif
+}
+
+.cardTitleBox .priceTag {
+  font-size: 20px;
+  margin-left: 15px;
+  filter: brightness(90%);
+}
+
+.cardBody .cardText {
+  display: flex;
+  justify-content: left;
+  align-items: baseline;
+  margin-bottom: -3px;
+}
+
+.cardText span:first-of-type {
+  color: #82879D;
+}
+
+.cardText .tokenOut {
+  margin-left: 20px;
+}
+
+.cardText .slippage {
+  margin-left: 20px;
+}
+
+.cardBody .statusBox{
+  float: right;
+  position: relative;
+  margin-right: 0px;
+  margin-top: -5px;
+}
+
+.statusBox .statusText {
+  position: absolute;
+  font-size: 18px;
+  padding: 10px 15px;
+  right: 0px;
+}
+
+.statusBox .cancelButton {
+  position: absolute;
+  top: 45px;
+  right: 0px;
+  padding: 3px 5px;
+  font-size: 14px;
+  border-radius: 15px;
+  width: 70px;
+} 

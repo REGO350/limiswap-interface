@@ -18,24 +18,24 @@ const ConnectButton = () => {
     useDispatch()
   );
 
+  const [loading, setLoading] = useState<boolean>(false);
   const [isHovering, setHover] = useState<boolean>(false);
 
-  const { pending, error, call } = useAsync(connectWallet);
-
   const onClickConnect = async () => {
-    const { error, data } = await call(null);
-    if (error) {
+    try {
+      setLoading(true);
+      const { host, provider, signer, address } = await connectWallet();
+      updateProvider({ host, provider });
+      updateUserInfo({ signer, address });
+    } catch (error: any) {
       setAlertModal({
         active: true,
         title: "Connection Error!",
         message: error.message || "Refused to connect",
       });
-    }
-    if (data) {
-      const { host, provider, signer, address } = data;
-      updateProvider({ host, provider });
-      updateUserInfo({ signer, address });
+    } finally {
       setHover(false)
+      setLoading(false);
     }
   };
 
@@ -54,11 +54,11 @@ const ConnectButton = () => {
         onClick={!address ? onClickConnect : onClickDisconnect}
         onMouseOver={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
-        disabled={pending}
+        disabled={loading}
         size="lg"
         style={{ width: "160px" }}
       >
-        {pending ? (
+        {loading ? (
           <Spinner
             as="span"
             animation="border"

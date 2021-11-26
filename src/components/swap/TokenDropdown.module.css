@@ -1,0 +1,99 @@
+.dropdownBtn {
+  width: 27%;
+  border-color: #2c2f36;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-width: 2px;
+  border-radius: 18px;
+}
+
+.dropdownMenu {
+  padding: 0;
+  min-width: 125px !important;
+  background-color: #191b2f;
+  margin-left: 127px;
+  margin-top: -77px;
+}
+
+.dropdownItem {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.dropdownText {
+  color: #fff;
+  font-size: large;
+  display: flex;
+  align-items: center;
+}
+
+.dropdownItem:hover {
+  background-color: #2d212e;
+}
+
+.contentBackdrop {
+  opacity: 0.75 !important;
+}
+
+.contentModal {
+  top: 100px;
+  background-color: #191B1F;
+  border-radius: 38px;
+  border: 1px solid #2c2f36;
+}
+
+.contentModal .contentHeader {
+  border-bottom: none;
+  margin-bottom: -20px;
+}
+
+.contentHeader .contentTitle {
+  color: #FFFFFF;
+  font-size: 20px;
+}
+
+.contentModal .contentBody {
+  margin-bottom: -10px;
+}
+
+.contentBody .contentFormControl {
+  background-color: #212429 !important;
+  color: #fff !important;
+  border-width: 2px;
+  border-color: #2c2f36;
+  border-radius: 18px;
+  height: 60px;
+  font-size: 18px;
+}
+
+.contentBody .subContent {
+  margin-top: 10px;
+  width: 100%;
+  overflow: auto;
+}
+
+.contentBody .subContent h6 {
+  float: left;
+  color: #fff;
+  filter: brightness(80%);
+}
+
+.contentHeader h5 {
+  float: right;
+  margin-bottom: 0px;
+  margin-right: 5px;
+}
+
+.contentModal .contentFooter{
+  border-top: 3px solid #2c2f36;
+}
+
+.contentFooter .modalButton {
+  border-radius: 10px;
+  margin: 0px 5px;
+}
+
+.modalButton#confirmButton {
+  width: 90px;
+}
