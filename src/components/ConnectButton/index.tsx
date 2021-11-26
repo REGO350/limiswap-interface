@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Button, Spinner } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { bindActionCreators } from "redux";
-import { useAsync } from "../../hooks";
 import {
   connectWallet,
   disconnectWallet,
@@ -10,6 +9,7 @@ import {
 import { selectUser } from "../../state";
 import * as userActions from "../../state/user/actions";
 import * as popupActions from "../../state/popup/actions";
+import styles from "./ConnectButton.module.css"
 
 const ConnectButton = () => {
   const { address, host } = useSelector(selectUser);
@@ -56,7 +56,7 @@ const ConnectButton = () => {
         onMouseLeave={() => setHover(false)}
         disabled={loading}
         size="lg"
-        style={{ width: "160px" }}
+        className={styles.connectButton}
       >
         {loading ? (
           <Spinner

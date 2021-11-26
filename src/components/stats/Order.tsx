@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import * as swapActions from "../../state/swap/actions";
 import * as userActions from "../../state/user/actions";
 import * as popupActions from "../../state/popup/actions";
-import { Badge, Button, Card, Spinner } from "react-bootstrap";
+import { Badge, Card, Spinner } from "react-bootstrap";
 import { IRawOrder } from "./StatsInterface";
 import styles from "./Stats.module.css";
 import { BigNumber } from "ethers";
@@ -25,6 +25,7 @@ const Order: React.FC<IProps> = ({ rawOrder }) => {
   );
 
   const [loading, setLoading] = useState(false);
+  const [isHovering, setHover] = useState(false);
   const {
     tokenInSymbol,
     tokenOutSymbol,
@@ -67,6 +68,9 @@ const Order: React.FC<IProps> = ({ rawOrder }) => {
   const slippageText = (Number(slippage) / 100).toString();
 
   const onClickCancel = async () => {
+    if (loading) {
+      return;
+    }
     try {
       setLoading(true);
       const txHash = await cancelOrder(orderId, signer);
@@ -84,6 +88,7 @@ const Order: React.FC<IProps> = ({ rawOrder }) => {
       });
     } finally {
       setLoading(false);
+      setHover(false);
     }
   };
 
@@ -92,38 +97,36 @@ const Order: React.FC<IProps> = ({ rawOrder }) => {
       <Card.Body className={styles.cardBody}>
         <div className={styles.statusBox}>
           {status === "PENDING" ? (
-            <Badge pill bg="secondary" className={styles.statusText}>
-              Pending
-            </Badge>
-          ) : status === "FILLED" ? (
-            <Badge pill bg="success" className={styles.statusText}>
-              Filled
-            </Badge>
-          ) : (
-            <Badge pill bg="danger" className={styles.statusText}>
-              Cancelled
-            </Badge>
-          )}
-          {status === "PENDING" && (
-            <Button
-              variant="danger"
-              className={styles.cancelButton}
-              size="sm"
+            <Badge
+              pill
+              bg={isHovering ? "danger" : "secondary"}
+              className={`${styles.statusText} ${styles.cancelText}`}
               onClick={onClickCancel}
-              disabled={loading}
+              onMouseEnter={() => setHover(true)}
+              onMouseLeave={() => setHover(false)}
             >
               {loading ? (
                 <Spinner
-                  as="span"
-                  animation="border"
-                  role="status"
-                  aria-hidden="true"
-                  size="sm"
+                  size='sm'
+                  as='span'
+                  animation='border'
+                  role='status'
+                  aria-hidden='true'
                 />
-              ) : (
+              ) : isHovering ? (
                 "Cancel"
+              ) : (
+                "Pending"
               )}
-            </Button>
+            </Badge>
+          ) : status === "FILLED" ? (
+            <Badge pill bg='success' className={styles.statusText}>
+              Filled
+            </Badge>
+          ) : (
+            <Badge pill bg='danger' className={styles.statusText}>
+              Cancelled
+            </Badge>
           )}
         </div>
         <Card.Title className={styles.cardTitleBox}>
@@ -134,7 +137,7 @@ const Order: React.FC<IProps> = ({ rawOrder }) => {
             @ {priceText} {tokenInSymbol} / {tokenOutSymbol}
           </div>
         </Card.Title>
-        <Card.Text className={styles.cardText} as="div">
+        <Card.Text className={styles.cardText} as='div'>
           <div className={styles.tokenIn}>
             <span>Amount in: </span>
             <span>
