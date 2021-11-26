@@ -1,3 +1,4 @@
+import Moralis from "moralis/types";
 import React, { useEffect, useState } from "react";
 import { Alert, Spinner } from "react-bootstrap";
 import { useMoralisCloudFunction } from "react-moralis";
@@ -13,6 +14,10 @@ export interface IRawOrder {
   amountIn: string;
   tokenIn: string;
   tokenOut: string;
+  tokenInSymbol: string;
+  tokenInDecimals: string;
+  tokenOutSymbol: string;
+  tokenOutDecimals: string;
   user: string;
   poolFee: string;
   slippage: string;
@@ -43,10 +48,11 @@ const StatsInterface = () => {
   }, [address]);
 
   useEffect(() => {
+    const rawData = data as Moralis.Object[];
     if (data && !error) {
-      //@ts-ignore
-      if (data.length > 0) {
-        setRawOrders(data as IRawOrder[]);
+      if (rawData.length > 0) {
+        const rawOrders = rawData.map(item => item.attributes);
+        setRawOrders(rawOrders as IRawOrder[]);
       } else {
         setRawOrders(null);
       }
@@ -60,8 +66,12 @@ const StatsInterface = () => {
       <Spinner animation="border" />
     ) : rawOrders ? (
       <div className={styles.orderBox}>
+        <div className={styles.orderBoxHeader}>
+          <div id={styles.positionsText}>Your orders ({rawOrders.length})</div>
+          <div id={styles.statusText}>Status</div>
+        </div>
         {rawOrders.map((rawOrder) => (
-          <Order rawOrder={rawOrder} key={rawOrder.objectId} />
+          <Order rawOrder={rawOrder} key={rawOrder.orderId} />
         ))}
       </div>
     ) : (
