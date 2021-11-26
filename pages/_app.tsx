@@ -5,8 +5,8 @@ import type { AppProps } from "next/app";
 import Layout from "../src/components/layout/Layout";
 import store from "../src/state";
 import { Provider } from "react-redux";
-// import { SSRProvider } from "react-bootstrap";
-import { SSRProvider } from "@react-aria/ssr";
+import { SSRProvider } from "react-bootstrap";
+// import { SSRProvider } from "@react-aria/ssr";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
