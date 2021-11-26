@@ -1,5 +1,10 @@
 import { ethers } from "ethers";
-import { ERC20, ERC20__factory, LimiSwap, LimiSwap__factory } from "./abis/types";
+import {
+  ERC20,
+  ERC20__factory,
+  LimiSwap,
+  LimiSwap__factory,
+} from "./abis/types";
 import { getDefaultProvider, TSignerProvider } from "../connectors";
 import { checkSigner } from "../interactions/connectwallet";
 import tokenList from "./addresses/tokenList.json";
@@ -8,27 +13,27 @@ import { IQuoter } from "./abis/types/IQuoter";
 import { IQuoter__factory } from "./abis/types/factories/IQuoter__factory";
 
 export type ListedToken = keyof typeof tokenList;
-export const listedTokens = Object.keys(tokenList) as ListedToken[]
+export const listedTokens = Object.keys(tokenList) as ListedToken[];
 
 export const isListedToken = (token: any): token is ListedToken => {
-  return listedTokens.includes(token)
-}
+  return listedTokens.includes(token);
+};
 
 export const getTokenAddr = (token: string): string => {
-  const tokenAddr = isListedToken(token) ? tokenList[token] : token;
+  const tokenAddr = isListedToken(token) ? tokenList[token].address : token;
   return tokenAddr;
-}
+};
 
 export const getTokenInstance = async (
   token: string,
-  signerOrProvider?: TSignerProvider,
+  signerOrProvider?: TSignerProvider
 ): Promise<ERC20> => {
-  if(signerOrProvider){
+  if (signerOrProvider) {
     await checkSigner(signerOrProvider);
-  }else{
+  } else {
     signerOrProvider = getDefaultProvider();
   }
-  const tokenAddr = isListedToken(token) ? tokenList[token] : token;
+  const tokenAddr = isListedToken(token) ? tokenList[token].address : token;
   return ERC20__factory.connect(tokenAddr, signerOrProvider);
 };
 
@@ -36,9 +41,9 @@ export const limiswapAddr = contractAddr.LimiSwap;
 export const getLimiSwapInstance = async (
   signerOrProvider?: TSignerProvider
 ): Promise<LimiSwap> => {
-  if(signerOrProvider){
+  if (signerOrProvider) {
     await checkSigner(signerOrProvider);
-  }else{
+  } else {
     signerOrProvider = getDefaultProvider();
   }
   return LimiSwap__factory.connect(limiswapAddr, signerOrProvider);
@@ -46,6 +51,9 @@ export const getLimiSwapInstance = async (
 
 export const getQuoterInstance = async (): Promise<IQuoter> => {
   const provider = getDefaultProvider();
-  const voidSigner = new ethers.VoidSigner(ethers.constants.AddressZero, provider);
+  const voidSigner = new ethers.VoidSigner(
+    ethers.constants.AddressZero,
+    provider
+  );
   return IQuoter__factory.connect(contractAddr.Quoter, voidSigner);
-}
+};

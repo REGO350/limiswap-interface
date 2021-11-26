@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
 import { JsonRpcSigner } from "@ethersproject/providers";
 import { getLimiSwapInstance, getQuoterInstance, getTokenInstance } from "../contracts";
-import { toBN } from "../utils";
+import { toBN, toWei } from "../utils";
 
 export const createOrder = async (
   price: number,
@@ -21,7 +21,7 @@ export const cancelOrder = async (
   signer: JsonRpcSigner,
 ): Promise<string> => {
   const limiswap = await getLimiSwapInstance(signer);
-  const tx = await limiswap.cancelOrder(orderId);
+  const tx = await limiswap.cancelOrder(orderId, { gasLimit: 150_000 });
   const { transactionHash } = await tx.wait();
   return transactionHash;
 }
