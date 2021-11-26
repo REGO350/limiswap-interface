@@ -4,7 +4,6 @@
   border-radius: 30px;
   padding-top: 15px;
   margin-bottom: -50px;
-  /* padding-bottom: 15px; */
 }
 
 .orderBox .orderBoxHeader {
@@ -36,7 +35,6 @@
 .card .cardBody {
   background-color:#212429;
   border-radius: 30px;
-  /* position: relative; */
   overflow: auto;
   padding-bottom: 15px;
 }
@@ -81,7 +79,7 @@
   float: right;
   position: relative;
   margin-right: 0px;
-  margin-top: -5px;
+  margin-top: 10px;
 }
 
 .statusBox .statusText {
@@ -89,14 +87,9 @@
   font-size: 18px;
   padding: 10px 15px;
   right: 0px;
+  width: 120px;
 }
 
-.statusBox .cancelButton {
-  position: absolute;
-  top: 45px;
-  right: 0px;
-  padding: 3px 5px;
-  font-size: 14px;
-  border-radius: 15px;
-  width: 70px;
-} 
+.statusBox .cancelText:hover {
+  cursor: pointer;
+}
