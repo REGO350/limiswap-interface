@@ -11,7 +11,7 @@ const Home: React.FC = () => {
       <Head>
         <title>LimiSwap</title>
         <meta name="description" content="World leading token exchange!" />
-        <link rel="icon§" href="/favicon.ico" />
+        <link rel="icon§" href="/assets/favicon.ico" />
       </Head>
 
       <main className={styles.main}>
