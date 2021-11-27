@@ -9,6 +9,12 @@ name: Deploy to Firebase Hosting on merge
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_APP_ID: ${{ secrets.APP_ID }}
+      NEXT_PUBLIC_SERVER_URL: ${{ secrets.SERVER_URL }}
+      NEXT_PUBLIC_API_KEY: ${{ secrets.API_KEY }}
+
     steps:
       - uses: actions/checkout@v2
       - run: yarn && yarn build
