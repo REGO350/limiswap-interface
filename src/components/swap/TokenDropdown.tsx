@@ -10,7 +10,6 @@ import {
 } from "react-bootstrap";
 import { isListedToken, listedTokens } from "../../contracts";
 import styles from "./TokenDropdown.module.css";
-import Image from "next/image";
 import { isValidAddress } from "../../utils";
 import { getDecimals, getSymbol } from "../../interactions/token";
 import { ITokenInfo } from "../../state/swap/reducers";
@@ -33,16 +32,16 @@ const TokenText: React.FC<{ tokenSymbol: string }> = ({ tokenSymbol }) => {
 
   if (listedTokens.includes(tokenSymbol as any)) {
     try {
-      require(`../../../public/${tokenSymbol.toLowerCase()}.png`);
-      imgUrl = `/${tokenSymbol.toLowerCase()}.png`;
+      // require(`../../../public/assets/${tokenSymbol.toLowerCase()}.png`);
+      imgUrl = `/assets/${tokenSymbol.toLowerCase()}.png`;
     } catch {
-      imgUrl = "/no-img.png";
+      imgUrl = "/assets/no-img.png";
     }
   }
 
   return (
     <div className={styles.dropdownText}>
-      {imgUrl && <Image src={imgUrl} alt="" width={30} height={30} />}
+      {imgUrl && <img src={imgUrl} alt="" width={30} height={30} />}
       {imgUrl && <>&nbsp;&nbsp;</>} {text}
     </div>
   );
