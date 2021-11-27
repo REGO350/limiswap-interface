@@ -15,6 +15,8 @@ import { isValidAddress } from "../../utils";
 import { getDecimals, getSymbol } from "../../interactions/token";
 import { ITokenInfo } from "../../state/swap/reducers";
 import tokenList from "../../contracts/addresses/tokenList.json";
+import { selectSwap } from "../../state";
+import { useSelector } from "react-redux";
 
 const DefaultText: React.FC = () => {
   return (
@@ -56,6 +58,7 @@ const CustomTokenModal: React.FC<ICustomTokenModal> = ({
   setShowSettings,
   setCustomToken,
 }) => {
+  const { tokensState } = useSelector(selectSwap);
   const [currentInput, setCurrentInput] = useState<string | undefined>(
     undefined
   );
@@ -67,14 +70,23 @@ const CustomTokenModal: React.FC<ICustomTokenModal> = ({
     if (currentInput && isValidAddress(currentInput)) {
       try {
         setLoading(true);
-
-        const symbol = await getSymbol(currentInput);
-        const decimals = await getDecimals(currentInput);
+        let symbol: string;
+        let decimals: number;
+        if (tokensState[currentInput]) {
+          symbol =
+            tokensState[currentInput].symbol || (await getSymbol(currentInput));
+          decimals =
+            tokensState[currentInput].decimals ||
+            (await getDecimals(currentInput));
+        } else {
+          symbol = await getSymbol(currentInput);
+          decimals = await getDecimals(currentInput);
+        }
 
         setCustomToken({
           address: currentInput,
           symbol,
-          decimals
+          decimals,
         });
         setIsInvalid(false);
         setShowSettings(false);

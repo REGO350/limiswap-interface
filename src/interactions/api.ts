@@ -1,6 +1,63 @@
-import axios from "axios";
-import { getTokenAddr } from "../contracts";
+import axios, { AxiosResponse } from "axios";
 import { ITokenInfo } from "../state/swap/reducers";
+import { BigNumber, utils } from "ethers";
+import { toBN } from "../utils";
+import { getTokenAddr } from "../contracts";
+
+export interface ITokenData {
+  address: string,
+  name: string,
+  symbol: string,
+  decimals: number,
+  balance: BigNumber
+}
+
+export const getUserTokensData = async (
+  userAddr: string
+) => {
+  try {
+    const apiKey = process.env.NEXT_PUBLIC_API_KEY || "";
+    const erc20 = await axios.get(
+      `https://deep-index.moralis.io/api/v2/${userAddr}/erc20?chain=kovan`,
+      {
+        headers: {
+          "X-API-KEY": apiKey
+        }
+      } 
+    ) as AxiosResponse<any[]>;
+
+    const native = await axios.get(
+      `https://deep-index.moralis.io/api/v2/${userAddr}/balance?chain=kovan`,
+      {
+        headers: {
+          "X-API-KEY": apiKey
+        }
+      } 
+    ) as AxiosResponse<any>;
+
+    const data: ITokenData[] = erc20.data.map((item: any) => {
+      return {
+        address: utils.getAddress(item.token_address),
+        name: item.name,
+        symbol: item.symbol,
+        decimals: Number(item.decimals),
+        balance: toBN(item.balance)
+      }
+    })
+
+    data.push({
+      address: getTokenAddr("ETH"),
+      name: "Ether",
+      symbol: "ETH",
+      decimals: 18,
+      balance: toBN(native.data.balance)
+    })
+
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
 
 export interface IPair {
   poolFee: number;

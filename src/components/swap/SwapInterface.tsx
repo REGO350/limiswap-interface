@@ -15,14 +15,15 @@ import {
   getBalanceAllownace,
   hasApprovedToken,
   hasEnoughBalance,
+  getAllowance
 } from "../../interactions/token";
 import { useDidUpdateAsyncEffect } from "../../hooks";
 import { connectWallet } from "../../interactions/connectwallet";
 import SwapButton from "./SwapButton";
-import { getPair, IPair } from "../../interactions/api";
+import { getPair, getUserTokensData, IPair } from "../../interactions/api";
 import SlippageModal from "./SlippageModal";
 import { ITokenInfo } from "../../state/swap/reducers";
-import { fromWei, toBN, toWei } from "../../utils";
+import { fromWei, toBN } from "../../utils";
 
 const SwapInterface = (): JSX.Element => {
   const { address, signer } = useSelector(selectUser);
@@ -172,25 +173,59 @@ const SwapInterface = (): JSX.Element => {
   };
 
   const reloadTokens = async (...tokens: Array<ITokenInfo>): Promise<void> => {
-    setLoading(true);
-    for (let token of tokens) {
-      if (address) {
-        try {
-          const data = await getBalanceAllownace(address, token);
+    if(!address){
+      return;
+    }
+    try {
+      setLoading(true);
+      const tokensData = await getUserTokensData(address);
+      const recievedTokens: string[] = [];
+      for(const token of tokensData){
+        updateTokenState({ [token.address]: {
+          balance: token.balance,
+          decimals: token.decimals,
+          symbol: token.symbol
+        }});
+        recievedTokens.push(token.address);
+      }
+      if(tokens.length > 0){
+        for (const token of tokens) {
+          const data = await getAllowance(address, token);
           updateTokenState({ [token.address]: data });
-        } catch (err) {
-          console.error(err);
+        }
+        const needsUpdate = tokens.filter((token) => {
+          !recievedTokens.includes(token.address)
+        })
+        if(needsUpdate.length > 0){
+          for (const token of needsUpdate) {
+            const data = await getBalanceAllownace(address, token);
+            updateTokenState({ [token.address]: data });
+          }
         }
       }
+    } catch(error) {
+      try {
+        for (const token of tokens) {
+          const data = await getBalanceAllownace(address, token);
+          updateTokenState({ [token.address]: data });
+        }
+      } catch(error) {
+        console.error(error);
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+  }
 
   //Account change
   useDidUpdateAsyncEffect(async () => {
     await resetAllTokenState();
-    if (address && tokenIn) {
-      await reloadTokens(tokenIn);
+    if (address) {
+      if(tokenIn){
+        await reloadTokens(tokenIn);
+      }else{
+        await reloadTokens;
+      }
     }
   }, [address]);
 

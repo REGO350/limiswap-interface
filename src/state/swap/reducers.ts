@@ -6,6 +6,8 @@ import { updateTokenState, setTokenIn, setTokenOut, resetAllTokenState } from ".
 export interface ITokenState {
   balance?: BigNumber;
   allowance?: BigNumber;
+  symbol?: string;
+  decimals?: number;
 }
 
 export interface ITokenInfo {

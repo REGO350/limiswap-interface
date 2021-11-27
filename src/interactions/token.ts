@@ -42,6 +42,23 @@ export const getBalanceAllownace = async (
   }
 };
 
+export const getAllowance = async (
+  userAddr: string,
+  selectedToken: ITokenInfo
+): Promise<{ allowance: BigNumber }> => {
+  try {
+    if (selectedToken.symbol === "ETH") {
+      return { allowance: MaxUint256 };
+    } else {
+      const token = await getTokenInstance(selectedToken.address);
+      const allowance = await token.allowance(userAddr, limiswapAddr);
+      return { allowance };
+    }
+  } catch (err) {
+    throw err;
+  }
+};
+
 export const hasEnoughBalance = async (
   userAddr: string,
   selectedToken: ITokenInfo,
