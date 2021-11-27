@@ -17,19 +17,19 @@ import {
   hasEnoughBalance,
   getAllowance,
 } from "../../interactions/token";
-import { useDidUpdateAsyncEffect } from "../../hooks";
 import { connectWallet } from "../../interactions/connectwallet";
 import SwapButton from "./SwapButton";
 import { getUserTokensData } from "../../interactions/api";
 import SlippageModal from "./SlippageModal";
 import { ITokenInfo } from "../../state/swap/reducers";
 import { fromWei, toBN, toWei } from "../../utils";
-import { getPair, IPair } from "../../interactions/pool";
+import { getAmountOut, getPair } from "../../interactions/pool";
 import { BigNumber } from "ethers";
+import useAsyncEffect from "use-async-effect";
 
 const SwapInterface = (): JSX.Element => {
   const { address, signer } = useSelector(selectUser);
-  const { tokenIn, tokenOut, tokensState } = useSelector(selectSwap);
+  const { tokenIn, tokenOut, tokensState, pair } = useSelector(selectSwap);
   const {
     setTxHash,
     updateTokenState,
@@ -40,6 +40,7 @@ const SwapInterface = (): JSX.Element => {
     setTokenIn,
     setTokenOut,
     resetAllTokenState,
+    setPair
   } = bindActionCreators(
     { ...swapActions, ...userActions, ...popupActions },
     useDispatch()
@@ -51,8 +52,7 @@ const SwapInterface = (): JSX.Element => {
   const [rate, setRate] = useState<number>(0);
   const [price, setPrice] = useState<number>(0);
   const [slippage, setSlippage] = useState<number>(1);
-  const [output, setOutput] = useState<number>(0);
-  const [pair, setPair] = useState<IPair | undefined>(undefined);
+  const [outputValue, setOutputValue] = useState<string | undefined>(undefined);
 
   const [payable, setPayable] = useState<boolean>(false);
   const [approved, setApproved] = useState<boolean>(false);
@@ -223,7 +223,7 @@ const SwapInterface = (): JSX.Element => {
   };
 
   //Account change
-  useDidUpdateAsyncEffect(async () => {
+  useAsyncEffect(async () => {
     await resetAllTokenState();
     if (address) {
       if (tokenIn) {
@@ -235,7 +235,7 @@ const SwapInterface = (): JSX.Element => {
   }, [address]);
 
   //tokenIn change
-  useDidUpdateAsyncEffect(async () => {
+  useAsyncEffect(async () => {
     if (
       tokenIn &&
       (!tokensState.hasOwnProperty(tokenIn.address) ||
@@ -258,7 +258,7 @@ const SwapInterface = (): JSX.Element => {
   }, [tokenIn, tokensState]);
 
   //Pair change
-  useDidUpdateAsyncEffect(async () => {
+  useAsyncEffect(async () => {
     if (tokenIn && tokenOut) {
       if (tokenIn !== tokenOut) {
         setLoading(true);
@@ -279,22 +279,24 @@ const SwapInterface = (): JSX.Element => {
   }, [tokenIn, tokenOut]);
 
   //Input change
-  useDidUpdateAsyncEffect(async () => {
+  useAsyncEffect(async () => {
     if (tokenIn && tokenOut) {
-      if (input && rate) {
+      if (input.gt(toBN(0)) && rate) {
         const amount = rate * fromWei(input, tokenIn.decimals);
-        setOutput(amount);
-      } else if (input && pair) {
-        const amount = price * fromWei(input, tokenIn.decimals);
-        setOutput(amount);
-      } else if (input === toBN(0)) {
-        setOutput(0);
+        const amountText = amount > 1 ? amount.toFixed(6) : amount.toFixed(10);
+        setOutputValue(amountText);
+      } else if (input.gt(toBN(0)) && pair) {
+        const amount = await getAmountOut(input, pair);
+        const amountText = amount.greaterThan(1) ? amount.toFixed(6) : amount.toFixed(10);
+        setOutputValue(amountText);
+      } else {
+        setOutputValue(undefined);
       }
     }
   }, [input, rate, price]);
 
-  useDidUpdateAsyncEffect(async () => {
-    if (address && input && tokenIn && tokenOut) {
+  useAsyncEffect(async () => {
+    if (address && input.gt(toBN(0)) && tokenIn && tokenOut) {
       try {
         setPayable(
           await hasEnoughBalance(
@@ -319,7 +321,7 @@ const SwapInterface = (): JSX.Element => {
         setLoading(false);
       }
     }
-  }, [input]);
+  }, [input, address]);
 
   return (
     <main className={styles.main}>
@@ -395,7 +397,7 @@ const SwapInterface = (): JSX.Element => {
             id={styles.bottomFormControl}
             type="number"
             placeholder="0.00"
-            value={output === 0 ? "" : output.toFixed(7)}
+            value={outputValue === undefined ? "" : outputValue}
             disabled
           />
           <TokenDropdown
@@ -407,7 +409,7 @@ const SwapInterface = (): JSX.Element => {
           loading={loading}
           payable={payable}
           approved={approved}
-          hasEntered={input ? true : false}
+          hasEntered={input.gt(0) && rate > price ? true : false}
           isValidPair={pair ? true : false}
         />
       </Form>

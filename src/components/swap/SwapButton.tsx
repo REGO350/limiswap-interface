@@ -55,7 +55,7 @@ const SwapButton: React.FC<IProps> = ({
               "Approve token"
             )
           ) : (
-            "Insufficient Balance"
+            `Insufficient ${tokenIn.symbol} Balance`
           ) 
         ) : (
           "Select a Token"
