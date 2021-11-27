@@ -23,8 +23,9 @@ import SwapButton from "./SwapButton";
 import { getUserTokensData } from "../../interactions/api";
 import SlippageModal from "./SlippageModal";
 import { ITokenInfo } from "../../state/swap/reducers";
-import { fromWei, toBN } from "../../utils";
+import { fromWei, toBN, toWei } from "../../utils";
 import { getPair, IPair } from "../../interactions/pool";
+import { BigNumber } from "ethers";
 
 const SwapInterface = (): JSX.Element => {
   const { address, signer } = useSelector(selectUser);
@@ -45,7 +46,7 @@ const SwapInterface = (): JSX.Element => {
   );
 
   const [inputValue, setInputValue] = useState<string | undefined>(undefined);
-  const [input, setInput] = useState<number>(0);
+  const [input, setInput] = useState<BigNumber>(toBN(0));
   const [rateValue, setRateValue] = useState<string | undefined>(undefined);
   const [rate, setRate] = useState<number>(0);
   const [price, setPrice] = useState<number>(0);
@@ -65,10 +66,10 @@ const SwapInterface = (): JSX.Element => {
   ): void => {
     const inputValueNumber = Number(e.target.value);
     if (inputValueNumber >= 0 && e.target.value) {
-      setInput(inputValueNumber);
+      setInput(toWei(inputValueNumber, tokenIn?.decimals));
       setInputValue(e.target.value.toString());
     } else {
-      setInput(0);
+      setInput(toBN(0));
       setInputValue(undefined);
     }
   };
@@ -97,8 +98,8 @@ const SwapInterface = (): JSX.Element => {
       const balanceBN = tokensState[tokenIn.address].balance || toBN(0);
       const balance = fromWei(balanceBN, tokenIn.decimals);
       const balanceText =
-        balance > 1 ? balance.toFixed(5) : balance.toFixed(10);
-      setInput(balance);
+        balance > 1 ? balance.toFixed(6) : balance.toFixed(10);
+      setInput(balanceBN);
       setInputValue(balanceText);
     }
   };
@@ -268,7 +269,6 @@ const SwapInterface = (): JSX.Element => {
         } catch (err) {
           setPrice(0);
           setPair(undefined);
-          console.error(err);
         }
         setLoading(false);
       } else {
@@ -282,12 +282,12 @@ const SwapInterface = (): JSX.Element => {
   useDidUpdateAsyncEffect(async () => {
     if (tokenIn && tokenOut) {
       if (input && rate) {
-        const amount = rate * input;
+        const amount = rate * fromWei(input, tokenIn.decimals);
         setOutput(amount);
       } else if (input && pair) {
-        const amount = price * input;
+        const amount = price * fromWei(input, tokenIn.decimals);
         setOutput(amount);
-      } else if (input === 0) {
+      } else if (input === toBN(0)) {
         setOutput(0);
       }
     }
@@ -296,7 +296,6 @@ const SwapInterface = (): JSX.Element => {
   useDidUpdateAsyncEffect(async () => {
     if (address && input && tokenIn && tokenOut) {
       try {
-        setLoading(true);
         setPayable(
           await hasEnoughBalance(
             address,

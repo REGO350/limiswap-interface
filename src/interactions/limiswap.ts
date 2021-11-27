@@ -6,7 +6,7 @@ import { ITokenInfo } from "../state/swap/reducers";
 
 export const createOrder = async (
   price: number,
-  amountIn: number,
+  amountIn: BigNumber,
   tokenIn: ITokenInfo,
   tokenOut: ITokenInfo,
   fee: number,

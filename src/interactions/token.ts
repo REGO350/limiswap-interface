@@ -62,28 +62,26 @@ export const getAllowance = async (
 export const hasEnoughBalance = async (
   userAddr: string,
   selectedToken: ITokenInfo,
-  amount: number,
+  amount: BigNumber,
   userBalance?: BigNumber
 ): Promise<boolean> => {
-  const amountWei = toWei(amount, selectedToken.decimals);
   if (!userBalance) {
     userBalance = (await getBalanceAllownace(userAddr, selectedToken)).balance;
   }
-  return userBalance.gte(amountWei) || false;
+  return userBalance.gte(amount);
 };
 
 export const hasApprovedToken = async (
   userAddr: string,
   selectedToken: ITokenInfo,
-  amount: number,
+  amount: BigNumber,
   approvedAmount?: BigNumber
 ): Promise<boolean> => {
-  const valueWei = toWei(amount, selectedToken.decimals);
   if (!approvedAmount) {
     approvedAmount = (await getBalanceAllownace(userAddr, selectedToken))
       .allowance;
   }
-  return approvedAmount?.gte(valueWei) || false;
+  return approvedAmount?.gte(amount) || false;
 };
 
 export const approveToken = async (
