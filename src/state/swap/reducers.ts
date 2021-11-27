@@ -1,21 +1,37 @@
 import { createReducer } from "@reduxjs/toolkit";
 import { BigNumber } from "ethers";
-import { updateTokenState, setTokenIn, setTokenOut, resetAllTokenState } from "./actions";
+import { getTokenAddr } from "../../contracts";
+import { IPair } from "../../interactions/pool";
+import { updateTokenState, setTokenIn, setTokenOut, resetAllTokenState, setPair } from "./actions";
 
 export interface ITokenState {
   balance?: BigNumber;
   allowance?: BigNumber;
+  symbol?: string;
+  decimals?: number;
+}
+
+export interface ITokenInfo {
+  symbol: string;
+  address: string;
+  decimals: number;
 }
 
 interface IState {
-  tokenIn: string | undefined;
-  tokenOut: string | undefined;
+  tokenIn?: ITokenInfo
+  tokenOut?: ITokenInfo;
+  pair?: IPair
   tokensState: Record<string, ITokenState>;
 }
 
 const initialState: IState = {
-  tokenIn: "ETH",
+  tokenIn: {
+    symbol: "ETH",
+    address: getTokenAddr("ETH"),
+    decimals: 18
+  },
   tokenOut: undefined,
+  pair: undefined,
   tokensState: {},
 };
 
@@ -32,6 +48,12 @@ export default createReducer<IState>(initialState, (builder) => {
         ...state,
         tokenOut: payload,
       };
+    })
+    .addCase(setPair, ( state, { payload } ) => {
+      return {
+        ...state,
+        pair: payload
+      }
     })
     .addCase(updateTokenState, (state, { payload }) => {
       let tokensState: Record<string, ITokenState> = state.tokensState;

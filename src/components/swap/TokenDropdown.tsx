@@ -13,6 +13,11 @@ import styles from "./TokenDropdown.module.css";
 import Image from "next/image";
 import { isValidAddress } from "../../utils";
 import { getDecimals, getSymbol } from "../../interactions/token";
+import { ITokenInfo } from "../../state/swap/reducers";
+import tokenList from "../../contracts/addresses/tokenList.json";
+import { selectSwap } from "../../state";
+import { useSelector } from "react-redux";
+import { getTokenMetadata } from "../../interactions/api";
 
 const DefaultText: React.FC = () => {
   return (
@@ -22,22 +27,17 @@ const DefaultText: React.FC = () => {
   );
 };
 
-const TokenText: React.FC<{ token: string }> = ({ token }) => {
+const TokenText: React.FC<{ tokenSymbol: string }> = ({ tokenSymbol }) => {
   let imgUrl: string | null = null;
-  let text: string = "";
+  const text = tokenSymbol;
 
-  if (listedTokens.includes(token as any)) {
+  if (listedTokens.includes(tokenSymbol as any)) {
     try {
-      require(`../../../public/${token.toLowerCase()}.png`);
-      imgUrl = `/${token.toLowerCase()}.png`;
+      require(`../../../public/${tokenSymbol.toLowerCase()}.png`);
+      imgUrl = `/${tokenSymbol.toLowerCase()}.png`;
     } catch {
       imgUrl = "/no-img.png";
     }
-    text = `${token.toUpperCase()}`;
-  } else if(isValidAddress(token)){
-    text = `${token.slice(0, 5)}..${token.slice(-3)}`;
-  } else {
-    text = `${token.toUpperCase()}`;
   }
 
   return (
@@ -51,16 +51,15 @@ const TokenText: React.FC<{ token: string }> = ({ token }) => {
 interface ICustomTokenModal {
   showSetting: boolean;
   setShowSettings: (value: boolean) => void;
-  setCustomToken: (value: string) => void;
-  setTokenInfo: (tokenInfo: { symbol: string, decimals: number }) => void;
+  setCustomToken: (value: ITokenInfo) => void;
 }
 
 const CustomTokenModal: React.FC<ICustomTokenModal> = ({
   showSetting,
   setShowSettings,
   setCustomToken,
-  setTokenInfo
 }) => {
+  const { tokensState } = useSelector(selectSwap);
   const [currentInput, setCurrentInput] = useState<string | undefined>(
     undefined
   );
@@ -72,12 +71,30 @@ const CustomTokenModal: React.FC<ICustomTokenModal> = ({
     if (currentInput && isValidAddress(currentInput)) {
       try {
         setLoading(true);
-
-        const symbol = await getSymbol(currentInput);
-        const decimals = await getDecimals(currentInput);
-
-        setCustomToken(currentInput);
-        setTokenInfo({ symbol, decimals});
+        let symbol: string;
+        let decimals: number;
+        if (tokensState[currentInput]) {
+          symbol = tokensState[currentInput].symbol || "";
+          decimals = tokensState[currentInput].decimals || 0;
+        } else {
+          try {
+            const metadata = await getTokenMetadata(currentInput);
+            symbol = metadata.symbol;
+            decimals = metadata.decimals
+          } catch (error: any){
+            if(error.message === "Invalid address"){
+              throw error;
+            }else{
+              symbol = await getSymbol(currentInput);
+              decimals = await getDecimals(currentInput);
+            }
+          }
+        }
+        setCustomToken({
+          address: currentInput,
+          symbol,
+          decimals,
+        });
         setIsInvalid(false);
         setShowSettings(false);
       } catch {
@@ -174,8 +191,8 @@ const CustomTokenModal: React.FC<ICustomTokenModal> = ({
 };
 
 interface ITokenDropDown {
-  token: string | undefined;
-  setToken: (token: string) => void;
+  token: ITokenInfo | undefined;
+  setToken: (token: ITokenInfo) => void;
 }
 
 export const TokenDropdown: React.FC<ITokenDropDown> = ({
@@ -186,12 +203,14 @@ export const TokenDropdown: React.FC<ITokenDropDown> = ({
     <DefaultText />
   );
   const [showSetting, setShowSetting] = useState<boolean>(false);
-  const [customTokenSymbol, setCustomTokenSymbol] = useState<string | undefined>(undefined);
 
   const handleSelect = (e: string | null): void => {
     if (e && isListedToken(e)) {
-      setToken(e);
-      setCustomTokenSymbol(undefined);
+      setToken({
+        address: tokenList[e].address,
+        symbol: e,
+        decimals: tokenList[e].decimals,
+      });
     } else {
       setShowSetting(true);
     }
@@ -199,15 +218,11 @@ export const TokenDropdown: React.FC<ITokenDropDown> = ({
 
   useEffect(() => {
     if (token) {
-      if(customTokenSymbol){
-        setDropdownBtnText(<TokenText token={customTokenSymbol} />);
-      }else{
-        setDropdownBtnText(<TokenText token={token} />);
-      }
+      setDropdownBtnText(<TokenText tokenSymbol={token.symbol} />);
     } else {
       setDropdownBtnText(<DefaultText />);
     }
-  }, [token, customTokenSymbol]);
+  }, [token]);
 
   return (
     <>
@@ -227,7 +242,7 @@ export const TokenDropdown: React.FC<ITokenDropDown> = ({
               key={token}
               className={styles.dropdownItem}
             >
-              <TokenText token={token} />
+              <TokenText tokenSymbol={token} />
             </Dropdown.Item>
           ))}
           <Dropdown.Item
@@ -243,7 +258,6 @@ export const TokenDropdown: React.FC<ITokenDropDown> = ({
         showSetting={showSetting}
         setShowSettings={setShowSetting}
         setCustomToken={setToken}
-        setTokenInfo={({ symbol }) => setCustomTokenSymbol(symbol)}
       />
     </>
   );

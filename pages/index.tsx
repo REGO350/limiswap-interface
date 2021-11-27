@@ -15,10 +15,10 @@ const Home: React.FC = () => {
       </Head>
 
       <main className={styles.main}>
-        <AlertModal/>
-        <SuccessModal/>
+        <AlertModal />
+        <SuccessModal />
         <SwapInterface />
-        <Footer/>
+        <Footer />
       </main>
     </>
   );

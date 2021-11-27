@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Badge, Form, FormControl, InputGroup } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { bindActionCreators } from "redux";
@@ -15,16 +15,21 @@ import {
   getBalanceAllownace,
   hasApprovedToken,
   hasEnoughBalance,
+  getAllowance,
 } from "../../interactions/token";
-import { useDidUpdateAsyncEffect } from "../../hooks";
 import { connectWallet } from "../../interactions/connectwallet";
 import SwapButton from "./SwapButton";
-import { getPair, IPair } from "../../interactions/api";
+import { getUserTokensData } from "../../interactions/api";
 import SlippageModal from "./SlippageModal";
+import { ITokenInfo } from "../../state/swap/reducers";
+import { fromWei, toBN, toWei } from "../../utils";
+import { getAmountOut, getPair } from "../../interactions/pool";
+import { BigNumber } from "ethers";
+import useAsyncEffect from "use-async-effect";
 
 const SwapInterface = (): JSX.Element => {
   const { address, signer } = useSelector(selectUser);
-  const { tokenIn, tokenOut, tokensState } = useSelector(selectSwap);
+  const { tokenIn, tokenOut, tokensState, pair } = useSelector(selectSwap);
   const {
     setTxHash,
     updateTokenState,
@@ -35,35 +40,36 @@ const SwapInterface = (): JSX.Element => {
     setTokenIn,
     setTokenOut,
     resetAllTokenState,
+    setPair
   } = bindActionCreators(
     { ...swapActions, ...userActions, ...popupActions },
     useDispatch()
   );
 
   const [inputValue, setInputValue] = useState<string | undefined>(undefined);
-  const [input, setInput] = useState<number>(0);
+  const [input, setInput] = useState<BigNumber>(toBN(0));
   const [rateValue, setRateValue] = useState<string | undefined>(undefined);
   const [rate, setRate] = useState<number>(0);
   const [price, setPrice] = useState<number>(0);
   const [slippage, setSlippage] = useState<number>(1);
-  const [output, setOutput] = useState<number>(0);
-  const [pair, setPair] = useState<IPair | undefined>(undefined);
+  const [outputValue, setOutputValue] = useState<string | undefined>(undefined);
 
   const [payable, setPayable] = useState<boolean>(false);
   const [approved, setApproved] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
   const [showSetting, setShowSettings] = useState<boolean>(false);
+  const [showMaxBtn, setShowMaxBtn] = useState<boolean>(false);
 
   const onInputChange = (
     e: React.ChangeEvent<typeof FormControl & HTMLInputElement>
   ): void => {
     const inputValueNumber = Number(e.target.value);
     if (inputValueNumber >= 0 && e.target.value) {
-      setInput(inputValueNumber);
+      setInput(toWei(inputValueNumber, tokenIn?.decimals));
       setInputValue(e.target.value.toString());
     } else {
-      setInput(0);
+      setInput(toBN(0));
       setInputValue(undefined);
     }
   };
@@ -88,8 +94,15 @@ const SwapInterface = (): JSX.Element => {
   };
 
   const onClickMax = (): void => {
-
-  }
+    if (tokenIn) {
+      const balanceBN = tokensState[tokenIn.address].balance || toBN(0);
+      const balance = fromWei(balanceBN, tokenIn.decimals);
+      const balanceText =
+        balance > 1 ? balance.toFixed(6) : balance.toFixed(10);
+      setInput(balanceBN);
+      setInputValue(balanceText);
+    }
+  };
 
   const onClickSubmit = async (
     e: React.FormEvent<HTMLFormElement>
@@ -162,49 +175,100 @@ const SwapInterface = (): JSX.Element => {
     }
   };
 
-  const reloadTokens = async (...tokens: Array<string>): Promise<void> => {
-    setLoading(true);
-    for (let token of tokens) {
-      if (address) {
-        try {
-          const data = await getBalanceAllownace(address, token);
-          updateTokenState({ [token]: data });
-        } catch (err) {
-          console.error(err);
+  const reloadTokens = async (...tokens: Array<ITokenInfo>): Promise<void> => {
+    if (!address) {
+      return;
+    }
+    try {
+      setLoading(true);
+      const tokensData = await getUserTokensData(address);
+      const recievedTokens: string[] = [];
+      for (const token of tokensData) {
+        updateTokenState({
+          [token.address]: {
+            balance: token.balance,
+            decimals: token.decimals,
+            symbol: token.symbol,
+          },
+        });
+        recievedTokens.push(token.address);
+      }
+      if (tokens.length > 0) {
+        for (const token of tokens) {
+          const data = await getAllowance(address, token);
+          updateTokenState({ [token.address]: data });
+        }
+        const needsUpdate = tokens.filter((token) => {
+          !recievedTokens.includes(token.address);
+        });
+        if (needsUpdate.length > 0) {
+          for (const token of needsUpdate) {
+            const data = await getBalanceAllownace(address, token);
+            updateTokenState({ [token.address]: data });
+          }
         }
       }
+    } catch (error) {
+      try {
+        for (const token of tokens) {
+          const data = await getBalanceAllownace(address, token);
+          updateTokenState({ [token.address]: data });
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   //Account change
-  useDidUpdateAsyncEffect(async () => {
+  useAsyncEffect(async () => {
     await resetAllTokenState();
-    if (address && tokenIn) {
-      await reloadTokens(tokenIn);
+    if (address) {
+      if (tokenIn) {
+        await reloadTokens(tokenIn);
+      } else {
+        await reloadTokens();
+      }
     }
   }, [address]);
 
   //tokenIn change
-  useDidUpdateAsyncEffect(async () => {
-    if (tokenIn && !tokensState.hasOwnProperty(tokenIn)) {
+  useAsyncEffect(async () => {
+    if (
+      tokenIn &&
+      (!tokensState.hasOwnProperty(tokenIn.address) ||
+        !tokensState[tokenIn.address].allowance)
+    ) {
       await reloadTokens(tokenIn);
     }
   }, [tokenIn]);
 
+  useEffect(() => {
+    if (tokenIn && tokensState.hasOwnProperty(tokenIn.address)) {
+      if (tokensState[tokenIn.address].balance?.gt(0)) {
+        setShowMaxBtn(true);
+      } else {
+        setShowMaxBtn(false);
+      }
+    } else {
+      setShowMaxBtn(false);
+    }
+  }, [tokenIn, tokensState]);
+
   //Pair change
-  useDidUpdateAsyncEffect(async () => {
+  useAsyncEffect(async () => {
     if (tokenIn && tokenOut) {
       if (tokenIn !== tokenOut) {
         setLoading(true);
         try {
           const pair = await getPair(tokenIn, tokenOut);
-          setPrice(pair.tokenOutPrice);
+          setPrice(Number(pair.tokenOutPrice.toFixed(8)));
           setPair(pair);
         } catch (err) {
           setPrice(0);
           setPair(undefined);
-          console.error(err);
         }
         setLoading(false);
       } else {
@@ -215,30 +279,31 @@ const SwapInterface = (): JSX.Element => {
   }, [tokenIn, tokenOut]);
 
   //Input change
-  useDidUpdateAsyncEffect(async () => {
+  useAsyncEffect(async () => {
     if (tokenIn && tokenOut) {
-      if (input && rate) {
-        const amount = rate * input;
-        setOutput(amount);
-      } else if (input && pair) {
-        const amount = price * input;
-        setOutput(amount);
-      } else if (input === 0) {
-        setOutput(0);
+      if (input.gt(toBN(0)) && rate) {
+        const amount = rate * fromWei(input, tokenIn.decimals);
+        const amountText = amount > 1 ? amount.toFixed(6) : amount.toFixed(10);
+        setOutputValue(amountText);
+      } else if (input.gt(toBN(0)) && pair) {
+        const amount = await getAmountOut(input, pair);
+        const amountText = amount.greaterThan(1) ? amount.toFixed(6) : amount.toFixed(10);
+        setOutputValue(amountText);
+      } else {
+        setOutputValue(undefined);
       }
     }
   }, [input, rate, price]);
 
-  useDidUpdateAsyncEffect(async () => {
-    if (address && input && tokenIn && tokenOut) {
-      setLoading(true);
+  useAsyncEffect(async () => {
+    if (address && input.gt(toBN(0)) && tokenIn && tokenOut) {
       try {
         setPayable(
           await hasEnoughBalance(
             address,
             tokenIn,
             input,
-            tokensState[tokenIn]?.balance
+            tokensState[tokenIn.address]?.balance
           )
         );
         setApproved(
@@ -246,16 +311,17 @@ const SwapInterface = (): JSX.Element => {
             address,
             tokenIn,
             input,
-            tokensState[tokenIn]?.allowance
+            tokensState[tokenIn.address]?.allowance
           )
         );
       } catch (err) {
         setPayable(false);
         setApproved(false);
+      } finally{
+        setLoading(false);
       }
-      setLoading(false);
     }
-  }, [input]);
+  }, [input, address]);
 
   return (
     <main className={styles.main}>
@@ -290,9 +356,16 @@ const SwapInterface = (): JSX.Element => {
             token={tokenIn}
             setToken={(token) => setTokenIn(token)}
           />
-          <Badge pill bg="secondary" id={styles.maxButton} onClick={onClickMax}>
-            Max
-          </Badge>
+          {showMaxBtn && (
+            <Badge
+              pill
+              bg="secondary"
+              id={styles.maxButton}
+              onClick={onClickMax}
+            >
+              Max
+            </Badge>
+          )}
         </InputGroup>
         <div className={styles.midBox}>
           <Form.Control
@@ -324,7 +397,7 @@ const SwapInterface = (): JSX.Element => {
             id={styles.bottomFormControl}
             type="number"
             placeholder="0.00"
-            value={output === 0 ? "" : output.toFixed(7)}
+            value={outputValue === undefined ? "" : outputValue}
             disabled
           />
           <TokenDropdown
@@ -336,7 +409,7 @@ const SwapInterface = (): JSX.Element => {
           loading={loading}
           payable={payable}
           approved={approved}
-          hasEntered={input ? true : false}
+          hasEntered={input.gt(0) && rate > price ? true : false}
           isValidPair={pair ? true : false}
         />
       </Form>

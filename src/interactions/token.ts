@@ -4,6 +4,7 @@ import { BigNumber } from "ethers";
 import { getDefaultProvider } from "../connectors";
 import { getTokenInstance, limiswapAddr } from "../contracts";
 import { toWei } from "../utils";
+import { ITokenInfo } from "../state/swap/reducers";
 
 export const getDecimals = async (
   selectedToken: string
@@ -23,15 +24,15 @@ export const getSymbol = async (
 
 export const getBalanceAllownace = async (
   userAddr: string,
-  selectedToken: string
+  selectedToken: ITokenInfo
 ): Promise<{ balance: BigNumber; allowance: BigNumber }> => {
   try {
-    if (selectedToken === "ETH") {
+    if (selectedToken.symbol === "ETH") {
       const provider = getDefaultProvider();
       const balance = await provider.getBalance(userAddr);
       return { balance, allowance: MaxUint256 };
     } else {
-      const token = await getTokenInstance(selectedToken);
+      const token = await getTokenInstance(selectedToken.address);
       const balance = await token.balanceOf(userAddr);
       const allowance = await token.allowance(userAddr, limiswapAddr);
       return { balance, allowance };
@@ -41,39 +42,54 @@ export const getBalanceAllownace = async (
   }
 };
 
+export const getAllowance = async (
+  userAddr: string,
+  selectedToken: ITokenInfo
+): Promise<{ allowance: BigNumber }> => {
+  try {
+    if (selectedToken.symbol === "ETH") {
+      return { allowance: MaxUint256 };
+    } else {
+      const token = await getTokenInstance(selectedToken.address);
+      const allowance = await token.allowance(userAddr, limiswapAddr);
+      return { allowance };
+    }
+  } catch (err) {
+    throw err;
+  }
+};
+
 export const hasEnoughBalance = async (
   userAddr: string,
-  selectedToken: string,
-  amount: number,
+  selectedToken: ITokenInfo,
+  amount: BigNumber,
   userBalance?: BigNumber
 ): Promise<boolean> => {
-  const amountWei = toWei(amount);
   if (!userBalance) {
     userBalance = (await getBalanceAllownace(userAddr, selectedToken)).balance;
   }
-  return userBalance.gte(amountWei) || false;
+  return userBalance.gte(amount);
 };
 
 export const hasApprovedToken = async (
   userAddr: string,
-  selectedToken: string,
-  amount: number,
+  selectedToken: ITokenInfo,
+  amount: BigNumber,
   approvedAmount?: BigNumber
 ): Promise<boolean> => {
-  const valueWei = toWei(amount);
   if (!approvedAmount) {
     approvedAmount = (await getBalanceAllownace(userAddr, selectedToken))
       .allowance;
   }
-  return approvedAmount?.gte(valueWei) || false;
+  return approvedAmount?.gte(amount) || false;
 };
 
 export const approveToken = async (
-  selectedToken: string,
+  selectedToken: ITokenInfo,
   signer: JsonRpcSigner
 ): Promise<string> => {
   try {
-    const token = await getTokenInstance(selectedToken, signer);
+    const token = await getTokenInstance(selectedToken.address, signer);
     const approveTokenTx = await token.approve(limiswapAddr, MaxUint256);
     const { transactionHash: txHash } = await approveTokenTx.wait();
     return txHash;
