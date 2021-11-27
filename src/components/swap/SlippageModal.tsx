@@ -32,7 +32,7 @@ const SlippageModal: React.FC<IProps> = ({showSetting, slippage, setSlippage, se
         aria-label="Default"
         defaultValue={Math.pow(slippage, 1/5)}
         valueLabelDisplay="auto"
-        step={0.01}
+        step={0.0001}
         min={0}
         max={2.18672}
         valueLabelFormat={(value) => `${value} %`}

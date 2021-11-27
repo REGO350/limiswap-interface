@@ -15,7 +15,7 @@ import {
   getBalanceAllownace,
   hasApprovedToken,
   hasEnoughBalance,
-  getAllowance
+  getAllowance,
 } from "../../interactions/token";
 import { useDidUpdateAsyncEffect } from "../../hooks";
 import { connectWallet } from "../../interactions/connectwallet";
@@ -92,10 +92,11 @@ const SwapInterface = (): JSX.Element => {
   };
 
   const onClickMax = (): void => {
-    if(tokenIn){
+    if (tokenIn) {
       const balanceBN = tokensState[tokenIn.address].balance || toBN(0);
       const balance = fromWei(balanceBN, tokenIn.decimals);
-      const balanceText = balance > 1 ? balance.toFixed(5) : balance.toFixed(10)
+      const balanceText =
+        balance > 1 ? balance.toFixed(5) : balance.toFixed(10);
       setInput(balance);
       setInputValue(balanceText);
     }
@@ -173,57 +174,59 @@ const SwapInterface = (): JSX.Element => {
   };
 
   const reloadTokens = async (...tokens: Array<ITokenInfo>): Promise<void> => {
-    if(!address){
+    if (!address) {
       return;
     }
     try {
       setLoading(true);
       const tokensData = await getUserTokensData(address);
       const recievedTokens: string[] = [];
-      for(const token of tokensData){
-        updateTokenState({ [token.address]: {
-          balance: token.balance,
-          decimals: token.decimals,
-          symbol: token.symbol
-        }});
+      for (const token of tokensData) {
+        updateTokenState({
+          [token.address]: {
+            balance: token.balance,
+            decimals: token.decimals,
+            symbol: token.symbol,
+          },
+        });
         recievedTokens.push(token.address);
       }
-      if(tokens.length > 0){
+      if (tokens.length > 0) {
         for (const token of tokens) {
           const data = await getAllowance(address, token);
           updateTokenState({ [token.address]: data });
         }
         const needsUpdate = tokens.filter((token) => {
-          !recievedTokens.includes(token.address)
-        })
-        if(needsUpdate.length > 0){
+          !recievedTokens.includes(token.address);
+        });
+        if (needsUpdate.length > 0) {
           for (const token of needsUpdate) {
             const data = await getBalanceAllownace(address, token);
             updateTokenState({ [token.address]: data });
           }
         }
       }
-    } catch(error) {
+    } catch (error) {
       try {
         for (const token of tokens) {
           const data = await getBalanceAllownace(address, token);
           updateTokenState({ [token.address]: data });
         }
-      } catch(error) {
+      } catch (error) {
         console.error(error);
       }
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   //Account change
   useDidUpdateAsyncEffect(async () => {
     await resetAllTokenState();
     if (address) {
-      if(tokenIn){
+      if (tokenIn) {
         await reloadTokens(tokenIn);
-      }else{
+      } else {
         await reloadTokens;
       }
     }
@@ -231,22 +234,26 @@ const SwapInterface = (): JSX.Element => {
 
   //tokenIn change
   useDidUpdateAsyncEffect(async () => {
-    if (tokenIn && !tokensState.hasOwnProperty(tokenIn.address)) {
+    if (
+      tokenIn &&
+      (!tokensState.hasOwnProperty(tokenIn.address) ||
+        !tokensState[tokenIn.address].allowance)
+    ) {
       await reloadTokens(tokenIn);
     }
   }, [tokenIn]);
 
   useEffect(() => {
-    if(tokenIn && tokensState.hasOwnProperty(tokenIn.address)){
-      if(tokensState[tokenIn.address].balance?.gt(0)){
+    if (tokenIn && tokensState.hasOwnProperty(tokenIn.address)) {
+      if (tokensState[tokenIn.address].balance?.gt(0)) {
         setShowMaxBtn(true);
-      }else{
+      } else {
         setShowMaxBtn(false);
       }
-    }else{
+    } else {
       setShowMaxBtn(false);
     }
-  }, [tokenIn, tokensState])
+  }, [tokenIn, tokensState]);
 
   //Pair change
   useDidUpdateAsyncEffect(async () => {
