@@ -2,6 +2,8 @@ import { ethers } from "ethers";
 import {
   ERC20,
   ERC20__factory,
+  IUniswapV3Pool,
+  IUniswapV3Pool__factory,
   LimiSwap,
   LimiSwap__factory,
 } from "./abis/types";
@@ -49,11 +51,20 @@ export const getLimiSwapInstance = async (
   return LimiSwap__factory.connect(limiswapAddr, signerOrProvider);
 };
 
-export const getQuoterInstance = async (): Promise<IQuoter> => {
+export const getQuoterInstance = (): IQuoter => {
   const provider = getDefaultProvider();
   const voidSigner = new ethers.VoidSigner(
     ethers.constants.AddressZero,
     provider
   );
   return IQuoter__factory.connect(contractAddr.Quoter, voidSigner);
+};
+
+export const getPoolInstance = (poolAddr: string): IUniswapV3Pool => {
+  const provider = getDefaultProvider();
+  const voidSigner = new ethers.VoidSigner(
+    ethers.constants.AddressZero,
+    provider
+  );
+  return IUniswapV3Pool__factory.connect(poolAddr, voidSigner);
 };

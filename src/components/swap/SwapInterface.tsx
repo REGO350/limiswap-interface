@@ -20,10 +20,11 @@ import {
 import { useDidUpdateAsyncEffect } from "../../hooks";
 import { connectWallet } from "../../interactions/connectwallet";
 import SwapButton from "./SwapButton";
-import { getPair, getUserTokensData, IPair } from "../../interactions/api";
+import { getUserTokensData } from "../../interactions/api";
 import SlippageModal from "./SlippageModal";
 import { ITokenInfo } from "../../state/swap/reducers";
 import { fromWei, toBN } from "../../utils";
+import { getPair, IPair } from "../../interactions/pool";
 
 const SwapInterface = (): JSX.Element => {
   const { address, signer } = useSelector(selectUser);
@@ -227,7 +228,7 @@ const SwapInterface = (): JSX.Element => {
       if (tokenIn) {
         await reloadTokens(tokenIn);
       } else {
-        await reloadTokens;
+        await reloadTokens();
       }
     }
   }, [address]);
@@ -262,7 +263,7 @@ const SwapInterface = (): JSX.Element => {
         setLoading(true);
         try {
           const pair = await getPair(tokenIn, tokenOut);
-          setPrice(pair.tokenOutPrice);
+          setPrice(Number(pair.tokenOutPrice.toFixed(8)));
           setPair(pair);
         } catch (err) {
           setPrice(0);
@@ -294,8 +295,8 @@ const SwapInterface = (): JSX.Element => {
 
   useDidUpdateAsyncEffect(async () => {
     if (address && input && tokenIn && tokenOut) {
-      setLoading(true);
       try {
+        setLoading(true);
         setPayable(
           await hasEnoughBalance(
             address,
@@ -315,8 +316,9 @@ const SwapInterface = (): JSX.Element => {
       } catch (err) {
         setPayable(false);
         setApproved(false);
+      } finally{
+        setLoading(false);
       }
-      setLoading(false);
     }
   }, [input]);
 

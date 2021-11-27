@@ -17,6 +17,7 @@ import { ITokenInfo } from "../../state/swap/reducers";
 import tokenList from "../../contracts/addresses/tokenList.json";
 import { selectSwap } from "../../state";
 import { useSelector } from "react-redux";
+import { getTokenMetadata } from "../../interactions/api";
 
 const DefaultText: React.FC = () => {
   return (
@@ -73,16 +74,22 @@ const CustomTokenModal: React.FC<ICustomTokenModal> = ({
         let symbol: string;
         let decimals: number;
         if (tokensState[currentInput]) {
-          symbol =
-            tokensState[currentInput].symbol || (await getSymbol(currentInput));
-          decimals =
-            tokensState[currentInput].decimals ||
-            (await getDecimals(currentInput));
+          symbol = tokensState[currentInput].symbol || "";
+          decimals = tokensState[currentInput].decimals || 0;
         } else {
-          symbol = await getSymbol(currentInput);
-          decimals = await getDecimals(currentInput);
+          try {
+            const metadata = await getTokenMetadata(currentInput);
+            symbol = metadata.symbol;
+            decimals = metadata.decimals
+          } catch (error: any){
+            if(error.message === "Invalid address"){
+              throw error;
+            }else{
+              symbol = await getSymbol(currentInput);
+              decimals = await getDecimals(currentInput);
+            }
+          }
         }
-
         setCustomToken({
           address: currentInput,
           symbol,
