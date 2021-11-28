@@ -1,8 +1,6 @@
 import { BigNumber } from "ethers";
 import { JsonRpcSigner } from "@ethersproject/providers";
-import {
-  getLimiSwapInstance, getTokenAddr, 
-} from "../contracts";
+import { getLimiSwapInstance, getTokenAddr } from "../contracts";
 import { ITokenInfo } from "../state/swap/reducers";
 import { toBN, toWei } from "../utils";
 
@@ -17,7 +15,7 @@ export const createOrder = async (
 ): Promise<string> => {
   const limiswap = await getLimiSwapInstance(signer);
   let value = toBN(0);
-  if(tokenIn.address === getTokenAddr("ETH")){
+  if (tokenIn.address === getTokenAddr("ETH")) {
     value = amountIn;
   }
   const tx = await limiswap.createOrder(
@@ -27,7 +25,12 @@ export const createOrder = async (
     tokenOut.address,
     fee,
     slippage * 100,
-    { gasLimit: 300_000, value }
+    {
+      gasLimit: 300_000,
+      value,
+      maxFeePerGas: toWei(6, 9),
+      maxPriorityFeePerGas: toWei(6, 9),
+    }
   );
   const { transactionHash } = await tx.wait(1);
   return transactionHash;
@@ -38,7 +41,11 @@ export const cancelOrder = async (
   signer: JsonRpcSigner
 ): Promise<string> => {
   const limiswap = await getLimiSwapInstance(signer);
-  const tx = await limiswap.cancelOrder(orderId, { gasLimit: 150_000 });
+  const tx = await limiswap.cancelOrder(orderId, {
+    gasLimit: 150_000,
+    maxFeePerGas: toWei(6, 9),
+    maxPriorityFeePerGas: toWei(6, 9),
+  });
   const { transactionHash } = await tx.wait(1);
   return transactionHash;
 };
