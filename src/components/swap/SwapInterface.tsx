@@ -127,7 +127,7 @@ const SwapInterface = (): JSX.Element => {
         setSuccessModal({
           active: true,
           txHash: data,
-          message: "Swap Successful",
+          message: "Create Order Successful",
         });
         await reloadTokens(tokenIn, tokenOut);
       } catch (error: any) {

@@ -52,7 +52,7 @@ const Order: React.FC<IProps> = ({ rawOrder }) => {
       setSuccessModal({
         active: true,
         txHash,
-        message: "Approve Successful",
+        message: "Cancel Successful",
       });
       setCurrentStatus("CANCELLED");
     } catch (error: any) {
