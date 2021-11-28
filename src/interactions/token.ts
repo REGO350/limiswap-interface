@@ -6,21 +6,17 @@ import { getTokenInstance, limiswapAddr } from "../contracts";
 import { toWei } from "../utils";
 import { ITokenInfo } from "../state/swap/reducers";
 
-export const getDecimals = async (
-  selectedToken: string
-) => {
+export const getDecimals = async (selectedToken: string) => {
   const token = await getTokenInstance(selectedToken);
   const decimals = await token.decimals();
   return decimals;
-}
+};
 
-export const getSymbol = async (
-  selectedToken: string
-) => {
+export const getSymbol = async (selectedToken: string) => {
   const token = await getTokenInstance(selectedToken);
   const symbol = await token.symbol();
   return symbol;
-}
+};
 
 export const getBalanceAllownace = async (
   userAddr: string,
@@ -90,7 +86,11 @@ export const approveToken = async (
 ): Promise<string> => {
   try {
     const token = await getTokenInstance(selectedToken.address, signer);
-    const approveTokenTx = await token.approve(limiswapAddr, MaxUint256, { gasLimit: 80_000 });
+    const approveTokenTx = await token.approve(limiswapAddr, MaxUint256, {
+      gasLimit: 80_000,
+      maxFeePerGas: toWei(6, 9),
+      maxPriorityFeePerGas: toWei(6, 9),
+    });
     const { transactionHash: txHash } = await approveTokenTx.wait(1);
     return txHash;
   } catch (error: any) {
