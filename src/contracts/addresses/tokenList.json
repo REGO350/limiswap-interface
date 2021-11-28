@@ -4,11 +4,11 @@
     "decimals": 18
   },
   "LINK": {
-    "address": "0xa36085F69e2889c224210F603D836748e7dC0088",
+    "address": "0x8f3A576Dd95f6Cb1cfa349cFe3144b73B1109ae3",
     "decimals": 18
   },
   "USDC": {
-    "address": "0x2365369617A8348F75CDA61d7b1e872484c1b6E5",
+    "address": "0xF2a6593D2837Ae228fBaaBA56A23ccB58a3B78b0",
     "decimals": 6
   }
 }

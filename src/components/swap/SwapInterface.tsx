@@ -66,7 +66,7 @@ const SwapInterface = (): JSX.Element => {
   ): void => {
     const inputValueNumber = Number(e.target.value);
     if (inputValueNumber >= 0 && e.target.value) {
-      setInput(toWei(inputValueNumber, tokenIn?.decimals));
+      setInput(toWei(e.target.value, tokenIn?.decimals));
       setInputValue(e.target.value.toString());
     } else {
       setInput(toBN(0));
@@ -122,6 +122,7 @@ const SwapInterface = (): JSX.Element => {
           signer
         );
         setTxHash(data);
+        setLoading(false);
         setSuccessModal({
           active: true,
           txHash: data,
@@ -129,19 +130,19 @@ const SwapInterface = (): JSX.Element => {
         });
         await reloadTokens(tokenIn, tokenOut);
       } catch (error: any) {
+        setLoading(false);
         setAlertModal({
           active: true,
           title: "Transaction Error!",
           message: error.message,
         });
-      } finally {
-        setLoading(false);
       }
     } else if (address && tokenIn && tokenOut && !approved) {
       try {
         setLoading(true);
         const data = await approveToken(tokenIn, signer);
         setTxHash(data);
+        setLoading(false);
         setSuccessModal({
           active: true,
           txHash: data,
@@ -149,14 +150,13 @@ const SwapInterface = (): JSX.Element => {
         });
         await reloadTokens(tokenIn);
       } catch (error: any) {
+        setLoading(false);
         setAlertModal({
           active: true,
           title: "Transaction Error!",
           message: error.message,
         });
-      } finally {
-        setLoading(false);
-      }
+      } 
     } else {
       try {
         setLoading(true);
@@ -260,23 +260,26 @@ const SwapInterface = (): JSX.Element => {
   //Pair change
   useAsyncEffect(async () => {
     if (tokenIn && tokenOut) {
-      if (tokenIn !== tokenOut) {
-        setLoading(true);
+      if (tokenIn.address !== tokenOut.address) {
         try {
+          setLoading(true);
           const pair = await getPair(tokenIn, tokenOut);
           setPrice(Number(pair.tokenOutPrice.toFixed(8)));
           setPair(pair);
         } catch (err) {
           setPrice(0);
           setPair(undefined);
+        } finally{
+          setLoading(false);
         }
-        setLoading(false);
       } else {
         setPrice(1);
         setPair(undefined);
       }
     }
   }, [tokenIn, tokenOut]);
+
+
 
   //Input change
   useAsyncEffect(async () => {
@@ -293,7 +296,7 @@ const SwapInterface = (): JSX.Element => {
         setOutputValue(undefined);
       }
     }
-  }, [input, rate, price]);
+  }, [input, rate, pair]);
 
   useAsyncEffect(async () => {
     if (address && input.gt(toBN(0)) && tokenIn && tokenOut) {

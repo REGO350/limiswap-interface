@@ -90,8 +90,8 @@ export const approveToken = async (
 ): Promise<string> => {
   try {
     const token = await getTokenInstance(selectedToken.address, signer);
-    const approveTokenTx = await token.approve(limiswapAddr, MaxUint256);
-    const { transactionHash: txHash } = await approveTokenTx.wait();
+    const approveTokenTx = await token.approve(limiswapAddr, MaxUint256, { gasLimit: 80_000 });
+    const { transactionHash: txHash } = await approveTokenTx.wait(1);
     return txHash;
   } catch (error: any) {
     throw error.message;
