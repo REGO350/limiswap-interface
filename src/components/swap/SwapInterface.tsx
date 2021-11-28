@@ -260,23 +260,26 @@ const SwapInterface = (): JSX.Element => {
   //Pair change
   useAsyncEffect(async () => {
     if (tokenIn && tokenOut) {
-      if (tokenIn !== tokenOut) {
-        setLoading(true);
+      if (tokenIn.address !== tokenOut.address) {
         try {
+          setLoading(true);
           const pair = await getPair(tokenIn, tokenOut);
           setPrice(Number(pair.tokenOutPrice.toFixed(8)));
           setPair(pair);
         } catch (err) {
           setPrice(0);
           setPair(undefined);
+        } finally{
+          setLoading(false);
         }
-        setLoading(false);
       } else {
         setPrice(1);
         setPair(undefined);
       }
     }
   }, [tokenIn, tokenOut]);
+
+
 
   //Input change
   useAsyncEffect(async () => {
@@ -293,7 +296,7 @@ const SwapInterface = (): JSX.Element => {
         setOutputValue(undefined);
       }
     }
-  }, [input, rate, price]);
+  }, [input, rate, pair]);
 
   useAsyncEffect(async () => {
     if (address && input.gt(toBN(0)) && tokenIn && tokenOut) {
