@@ -2,9 +2,7 @@ import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 
 export const networkId = 42;
-
-export const defaultRPCURL =
-  "https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161";
+export const defaultRPCURL = process.env.NEXT_PUBLIC_RPC_URL || "";
 
 const providerOptions = {
   injected: {

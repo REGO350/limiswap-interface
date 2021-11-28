@@ -50,7 +50,7 @@ const SwapButton: React.FC<IProps> = ({
             "Enter an Amount"
           ) : payable ? (
             approved ? (
-              "Swap"
+              "Create Order"
             ) : (
               "Approve token"
             )

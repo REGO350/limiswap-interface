@@ -46,8 +46,9 @@ const Order: React.FC<IProps> = ({ rawOrder }) => {
     }
     try {
       setLoading(true);
-      const txHash = await cancelOrder(orderId, signer);
+      const txHash = await cancelOrder(orderId.toString(), signer);
       setTxHash(txHash);
+      setLoading(false);
       setSuccessModal({
         active: true,
         txHash,
@@ -55,13 +56,13 @@ const Order: React.FC<IProps> = ({ rawOrder }) => {
       });
       setCurrentStatus("CANCELLED");
     } catch (error: any) {
+      setLoading(false);
       setAlertModal({
         active: true,
         title: "Transaction Error!",
         message: error.message,
       });
     } finally {
-      setLoading(false);
       setHover(false);
     }
   };

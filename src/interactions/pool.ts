@@ -6,6 +6,7 @@ import contractAddr from "../contracts/addresses/contractAddr.json";
 import { getPoolInstance } from "../contracts";
 import { IUniswapV3Pool } from "../contracts/abis/types";
 import { BigNumber } from "ethers";
+import { networkId } from '../connectors/network-config';
 
 const getState = async (pool: IUniswapV3Pool) => {
   const [liquidty, slot0] = await Promise.all([pool.liquidity(), pool.slot0()]);
@@ -24,8 +25,8 @@ export interface IPair {
 }
 
 export const getPair = async (tokenIn: ITokenInfo, tokenOut: ITokenInfo) => {
-  const tokenA = new Token(42, tokenIn.address, tokenIn.decimals);
-  const tokenB = new Token(42, tokenOut.address, tokenOut.decimals);
+  const tokenA = new Token(networkId, tokenIn.address, tokenIn.decimals);
+  const tokenB = new Token(networkId, tokenOut.address, tokenOut.decimals);
   const poolFees = [FeeAmount.LOW, FeeAmount.MEDIUM, FeeAmount.HIGH];
 
   const pending = poolFees.map(async (poolFee) => {

@@ -9,7 +9,7 @@ import Order from "./Order";
 import styles from "./Stats.module.css";
 
 export interface IRawOrder {
-  orderId: string;
+  orderId: number;
   targetPrice: string;
   amountIn: string;
   tokenIn: string;
@@ -71,7 +71,7 @@ const StatsInterface = () => {
           <div id={styles.statusText}>Status</div>
         </div>
         {rawOrders.map((rawOrder) => (
-          <Order rawOrder={rawOrder} key={rawOrder.orderId} />
+          <Order rawOrder={rawOrder} key={rawOrder.orderId.toString()} />
         ))}
       </div>
     ) : (
