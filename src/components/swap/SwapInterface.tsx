@@ -89,6 +89,7 @@ const SwapInterface = (): JSX.Element => {
 
   const onClickSwitchDirection = (): void => {
     const tmp = tokenOut;
+    setOutputValue(undefined);
     setTokenOut(tokenIn);
     setTokenIn(tmp);
   };
@@ -279,8 +280,6 @@ const SwapInterface = (): JSX.Element => {
     }
   }, [tokenIn, tokenOut]);
 
-
-
   //Input change
   useAsyncEffect(async () => {
     if (tokenIn && tokenOut) {
@@ -289,9 +288,14 @@ const SwapInterface = (): JSX.Element => {
         const amountText = amount > 1 ? amount.toFixed(6) : amount.toFixed(10);
         setOutputValue(amountText);
       } else if (input.gt(toBN(0)) && pair) {
-        const amount = await getAmountOut(input, pair);
-        const amountText = amount.greaterThan(1) ? amount.toFixed(6) : amount.toFixed(10);
-        setOutputValue(amountText);
+        try {
+          const amount = await getAmountOut(input, pair);
+          const amountText = amount.greaterThan(1) ? amount.toFixed(6) : amount.toFixed(10);
+          setOutputValue(amountText);
+        } catch {
+          setInput(toBN(0));
+          setInputValue(undefined);
+        }
       } else {
         setOutputValue(undefined);
       }

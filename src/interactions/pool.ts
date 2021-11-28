@@ -66,7 +66,7 @@ export const getPair = async (tokenIn: ITokenInfo, tokenOut: ITokenInfo) => {
 
   if (pool) {
     if (tokenIn.address === pool.token0.address) {
-      const swapRoute = new Route([pool], tokenB, tokenA);
+      const swapRoute = new Route([pool], tokenA, tokenB);
       return {
         swapRoute,
         poolFee: pool.fee,
