@@ -24,7 +24,7 @@ export const createOrder = async (
     tokenIn.address,
     tokenOut.address,
     fee,
-    slippage * 100,
+    Math.floor(slippage * 100),
     {
       gasLimit: 300_000,
       value,
