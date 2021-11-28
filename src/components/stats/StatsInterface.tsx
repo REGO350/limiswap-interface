@@ -75,7 +75,11 @@ const StatsInterface = () => {
         ))}
       </div>
     ) : (
-      <div>No tx</div>
+      <div className={styles.orderBox}>
+      <div className={styles.orderBoxHeader}>
+        <div id={styles.positionsText}>Your orders (0)</div>
+      </div>
+    </div>
     )
   ) : (
     <Alert variant="danger">Connect wallet to view your orders!</Alert>
